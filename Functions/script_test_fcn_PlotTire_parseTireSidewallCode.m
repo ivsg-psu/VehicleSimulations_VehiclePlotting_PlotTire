@@ -49,9 +49,6 @@ tireCodeCharacters = '205/55R16 91V';
 tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (figNum));
 
 fcn_PlotTire_plotTireDimensions(tireParameters,(figNum));
-% fcn_PlotTire_plotTireWithProfile(tireParameters, "arched")
-% fcn_PlotTire_plotTireWithProfile(tireParameters, "circle")
-
 
 sgtitle(titleString, 'Interpreter','none');
 

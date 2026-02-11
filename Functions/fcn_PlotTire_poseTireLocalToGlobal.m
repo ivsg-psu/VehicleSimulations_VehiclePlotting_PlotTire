@@ -192,47 +192,48 @@ end
 %                           |___/
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if flag_do_plots
+	fcn_PlotTire_plotTireXY(cellArrayOfGlobalPoints, (figNum));
 
-	% Create figure
-	h_fig = figure(figNum);
-	set(h_fig,'Name','Tire Top View','Color','w');
-	axis equal; hold on; box on;
-	xlabel('meters'); ylabel('meters');
-
-	for ith_cellArray = 1:Ncells
-		localXYZ = cellArrayOfLocalXYPoints{ith_cellArray,1};
-		globalXYZ = cellArrayOfGlobalPoints{ith_cellArray};
-		
-		subplot(1,2,1);
-		hold on; grid on;
-		patch(localXYZ(:,1),localXYZ(:,2),'.-','DisplayName',sprintf('Layer %.0f',ith_cellArray));
-		title('Local XYZ');
-		axis equal
-
-		pad = 0.05; % 5% padding
-		xl = xlim; yl = ylim;
-		cx = mean(xl); cy = mean(yl);
-		rx = (xl(2)-xl(1))/2 * (1+pad);
-		ry = (yl(2)-yl(1))/2 * (1+pad);
-		xlim([cx-rx, cx+rx]);
-		ylim([cy-ry, cy+ry]);
-
-
-		subplot(1,2,2);
-		hold on; grid on;
-		patch(globalXYZ(:,1),globalXYZ(:,2),'.-','DisplayName',sprintf('Layer %.0f',ith_cellArray));
-		title('Global XYZ');
-		axis equal
-
-		pad = 0.05; % 5% padding
-		xl = xlim; yl = ylim;
-		cx = mean(xl); cy = mean(yl);
-		rx = (xl(2)-xl(1))/2 * (1+pad);
-		ry = (yl(2)-yl(1))/2 * (1+pad);
-		xlim([cx-rx, cx+rx]);
-		ylim([cy-ry, cy+ry]);
-
-	end
+	% % Create figure
+	% h_fig = figure(figNum);
+	% set(h_fig,'Name','Tire Top View','Color','w');
+	% axis equal; hold on; box on;
+	% xlabel('meters'); ylabel('meters');
+	% 
+	% for ith_cellArray = 1:Ncells
+	% 	localXYZ = cellArrayOfLocalXYPoints{ith_cellArray,1};
+	% 	globalXYZ = cellArrayOfGlobalPoints{ith_cellArray};
+	% 
+	% 	subplot(1,2,1);
+	% 	hold on; grid on;
+	% 	patch(localXYZ(:,1),localXYZ(:,2),'.-','DisplayName',sprintf('Layer %.0f',ith_cellArray));
+	% 	title('Local XYZ');
+	% 	axis equal
+	% 
+	% 	pad = 0.05; % 5% padding
+	% 	xl = xlim; yl = ylim;
+	% 	cx = mean(xl); cy = mean(yl);
+	% 	rx = (xl(2)-xl(1))/2 * (1+pad);
+	% 	ry = (yl(2)-yl(1))/2 * (1+pad);
+	% 	xlim([cx-rx, cx+rx]);
+	% 	ylim([cy-ry, cy+ry]);
+	% 
+	% 
+	% 	subplot(1,2,2);
+	% 	hold on; grid on;
+	% 	patch(globalXYZ(:,1),globalXYZ(:,2),'.-','DisplayName',sprintf('Layer %.0f',ith_cellArray));
+	% 	title('Global XYZ');
+	% 	axis equal
+	% 
+	% 	pad = 0.05; % 5% padding
+	% 	xl = xlim; yl = ylim;
+	% 	cx = mean(xl); cy = mean(yl);
+	% 	rx = (xl(2)-xl(1))/2 * (1+pad);
+	% 	ry = (yl(2)-yl(1))/2 * (1+pad);
+	% 	xlim([cx-rx, cx+rx]);
+	% 	ylim([cy-ry, cy+ry]);
+	% 
+	% end
 
 
 end

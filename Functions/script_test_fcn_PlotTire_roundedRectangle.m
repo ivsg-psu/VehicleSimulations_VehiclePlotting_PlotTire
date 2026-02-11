@@ -1,11 +1,11 @@
-% script_test_fcn_PlotTire_poseTireLocalToGlobal.m
-% tests fcn_PlotTire_poseTireLocalToGlobal.m
+% script_test_fcn_PlotTire_roundedRectangle.m
+% tests fcn_PlotTire_roundedRectangle.m
 
 % REVISION HISTORY:
 %
 % 2026_02_08 by Sean Brennan, sbrennan@psu.edu
-% - In script_test_fcn_PlotTire_poseTireLocalToGlobal
-%   % * Wrote the code originally, using script_test_fcn_Laps_break+DataIntoLapIndices
+% - In script_test_fcn_PlotTire_roundedRectangle
+%   % * Wrote the code originally, using fcn_PlotTire_fillTireLocalXY
 
 
 % TO-DO:
@@ -35,33 +35,31 @@ close all
 close all;
 fprintf(1,'Figure: 1XXXXXX: DEMO cases\n');
 
-%% DEMO case: basic example call
+%% DEMO case: basic example of elliptical corners
 figNum = 10001;
-titleString = sprintf('DEMO case: basic example call');
+titleString = sprintf('DEMO case: basic example of elliptical corners');
 fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
 figure(figNum); clf;
 
 % Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = 3;
-cellArrayOfLocalXYPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-% Define the transformation parameters
-XYZ = [3 7 0]; % Example translation
-rollPitchYaw = [0 0 30*pi/180]; % Example rotation
+L = 0.4;
+W = 1.0;
+cornerShape = 'ellipse';
+cornerParams = [L/4 W/20];
+NcornerPoints = 24;
 
 % Call the function
-cellArrayOfGlobalPoints = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), (figNum));
 
 sgtitle(titleString, 'Interpreter','none');
 
 % Check variable types
-assert(iscell(cellArrayOfGlobalPoints));
+assert(isnumeric(XYpoints));
 
 % Check variable sizes
-assert(size(cellArrayOfGlobalPoints,1)==size(cellArrayOfLocalXYPoints,1)); 
-assert(size(cellArrayOfGlobalPoints,2)==size(cellArrayOfLocalXYPoints,2)); 
+assert(size(XYpoints,1)>=2); 
+assert(size(XYpoints,2)==2); 
 
 % Check variable values
 % Too many to check
@@ -70,61 +68,112 @@ assert(size(cellArrayOfGlobalPoints,2)==size(cellArrayOfLocalXYPoints,2));
 assert(isequal(get(gcf,'Number'),figNum));
 
 
-%% DEMO case: four tires
+%% DEMO case: basic example of Circular corners radius 0.08
 figNum = 10002;
-titleString = sprintf('DEMO case: four tires');
+titleString = sprintf('DEMO case: basic example of Circular corners radius 0.08');
 fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
 figure(figNum); clf;
 
 % Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = 3;
-cellArrayOfLocalXYPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-% Define the transformation parameters
-XYZ = [0.75 0 0]; % Example translation
-rollPitchYaw = [0 0 0*pi/180]; % Example rotation
+L = 0.4;
+W = 1.0;
+cornerShape = 'circle';
+cornerParams = 0.08;
+NcornerPoints = 24;
 
 % Call the function
-cellArrayOfGlobalPoints = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
-
-% Define the transformation parameters
-XYZ = [-0.75 0 0]; % Example translation
-rollPitchYaw = [0 0 0*pi/180]; % Example rotation
-
-% Call the function
-cellArrayOfGlobalPoints2 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
-
-% Define the transformation parameters
-XYZ = [0.75 2.5 0]; % Example translation
-rollPitchYaw = [0 0 30*pi/180]; % Example rotation
-
-% Call the function
-cellArrayOfGlobalPoints3 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
-
-% Define the transformation parameters
-XYZ = [-0.75 2.5 0]; % Example translation
-rollPitchYaw = [0 0 30*pi/180]; % Example rotation
-
-% Call the function
-cellArrayOfGlobalPoints4 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
-
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), (figNum));
 
 sgtitle(titleString, 'Interpreter','none');
 
 % Check variable types
-assert(iscell(cellArrayOfGlobalPoints));
+assert(isnumeric(XYpoints));
 
 % Check variable sizes
-assert(size(cellArrayOfGlobalPoints,1)==size(cellArrayOfLocalXYPoints,1)); 
-assert(size(cellArrayOfGlobalPoints,2)==size(cellArrayOfLocalXYPoints,2)); 
+assert(size(XYpoints,1)>=2); 
+assert(size(XYpoints,2)==2); 
 
 % Check variable values
 % Too many to check
 
 % Make sure plot opened up
 assert(isequal(get(gcf,'Number'),figNum));
+
+
+%% DEMO case: basic example of Custom corner shape (function handle)
+figNum = 10003;
+titleString = sprintf('DEMO case: basic example of Custom corner shape (function handle)');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+% Custom corner shape (function handle): Define a function with signature
+% pts = myCorner(cx,cy,tVec,params) that returns Nx2 points; pass handle
+% and params struct with params.Off = [ox oy]: XY =
+% roundedRectangle(1,0.6,@myCorner, params, 20);
+
+% Fill parameters
+L = 0.4;
+W = 1.0;
+clear cornerParams
+cornerParams.Off = [0.1 0.05];
+cornerParams.a = 0.1;
+cornerParams.b = 0.05;
+cornerFunc = @(cx,cy,tVec, cornerParams) [cx + cornerParams.a*cos(tVec(:)), cy + cornerParams.b*sin(tVec(:))];
+cornerShape = cornerFunc;
+NcornerPoints = 24;
+
+% Call the function
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), (figNum));
+
+sgtitle(titleString, 'Interpreter','none');
+
+% Check variable types
+assert(isnumeric(XYpoints));
+
+% Check variable sizes
+assert(size(XYpoints,1)>=2); 
+assert(size(XYpoints,2)==2); 
+
+% Check variable values
+% Too many to check
+
+% Make sure plot opened up
+assert(isequal(get(gcf,'Number'),figNum));
+
+%% DEMO case: basic example using defaults
+figNum = 10004;
+titleString = sprintf('DEMO case: basic example using defaults');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+% Fill parameters
+L = 0.4;
+W = 1.0;
+cornerShape = [];
+cornerParams = [];
+NcornerPoints = [];
+
+% Call the function
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), (figNum));
+
+sgtitle(titleString, 'Interpreter','none');
+
+% Check variable types
+assert(isnumeric(XYpoints));
+
+% Check variable sizes
+assert(size(XYpoints,1)>=2); 
+assert(size(XYpoints,2)==2); 
+
+% Check variable values
+% Too many to check
+
+% Make sure plot opened up
+assert(isequal(get(gcf,'Number'),figNum));
+
 %% Test cases start here. These are very simple, usually trivial
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -175,28 +224,28 @@ fprintf(1,'Figure: %.0f: FAST mode, empty figNum\n',figNum);
 figure(figNum); close(figNum);
 
 % Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = [];
-cellArrayOfLocalXYPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-% Define the transformation parameters
-XYZ = [3 7 0]; % Example translation
-rollPitchYaw = [0 0 30*pi/180]; % Example rotation
+L = 0.4;
+W = 1.0;
+cornerShape = 'ellipse';
+cornerParams = [0.1 0.05];
+NcornerPoints = 24;
 
 % Call the function
-cellArrayOfGlobalPoints = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  ([]));
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), ([]));
 
 % Check variable types
-assert(iscell(cellArrayOfGlobalPoints));
+assert(isnumeric(XYpoints));
 
 % Check variable sizes
-assert(size(cellArrayOfGlobalPoints,1)==size(cellArrayOfLocalXYPoints,1)); 
-assert(size(cellArrayOfGlobalPoints,2)==size(cellArrayOfLocalXYPoints,2)); 
+assert(size(XYpoints,1)>=2); 
+assert(size(XYpoints,2)==2); 
 
 % Check variable values
 % Too many to check
 
+% Check variable values
+% Too many to check
 % Make sure plot did NOT open up
 figHandles = get(groot, 'Children');
 assert(~any(figHandles==figNum));
@@ -208,24 +257,22 @@ fprintf(1,'Figure: %.0f: FAST mode, figNum=-1\n',figNum);
 figure(figNum); close(figNum);
 
 % Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = [];
-cellArrayOfLocalXYPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-% Define the transformation parameters
-XYZ = [3 7 0]; % Example translation
-rollPitchYaw = [0 0 30*pi/180]; % Example rotation
+L = 0.4;
+W = 1.0;
+cornerShape = 'ellipse';
+cornerParams = [0.1 0.05];
+NcornerPoints = 24;
 
 % Call the function
-cellArrayOfGlobalPoints = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (-1));
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), (-1));
 
 % Check variable types
-assert(iscell(cellArrayOfGlobalPoints));
+assert(isnumeric(XYpoints));
 
 % Check variable sizes
-assert(size(cellArrayOfGlobalPoints,1)==size(cellArrayOfLocalXYPoints,1)); 
-assert(size(cellArrayOfGlobalPoints,2)==size(cellArrayOfLocalXYPoints,2)); 
+assert(size(XYpoints,1)>=2); 
+assert(size(XYpoints,2)==2); 
 
 % Check variable values
 % Too many to check
@@ -242,14 +289,11 @@ figure(figNum);
 close(figNum);
 
 % Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = [];
-cellArrayOfLocalXYPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-% Define the transformation parameters
-XYZ = [3 7 0]; % Example translation
-rollPitchYaw = [0 0 30*pi/180]; % Example rotation
+L = 0.4;
+W = 1.0;
+cornerShape = 'ellipse';
+cornerParams = [0.1 0.05];
+NcornerPoints = 24;
 
 Niterations = 5;
 
@@ -258,7 +302,9 @@ tic;
 for ith_test = 1:Niterations
 
 	% Call the function
-	cellArrayOfGlobalPoints = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  ([]));
+	XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+		(cornerShape), (cornerParams), (NcornerPoints), ([]));
+
 end
 slow_method = toc;
 
@@ -267,7 +313,9 @@ tic;
 for ith_test = 1:Niterations
 
 	% Call the function
-	cellArrayOfGlobalPoints = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (-1));
+	XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+		(cornerShape), (cornerParams), (NcornerPoints), (-1));
+
 end
 fast_method = toc;
 

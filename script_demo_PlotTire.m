@@ -7,7 +7,7 @@
 % This is a script to demonstrate the functions within the PlotTire code
 % library. This code repo is typically located at:
 %
-%   https://github.com/ivsg-psu/FieldDataCollection_VisualizingFieldData_PlotTire
+% https://github.com/ivsg-psu/VehicleSimulations_VehiclePlotting_PlotTire
 %
 % If you have questions or comments, please contact Sean Brennan at
 % sbrennan@psu.edu
@@ -25,11 +25,20 @@
 % 
 % 2026_02_08 by Sean Brennan, sbrennan@psu.edu
 % - First creation of the repo
+% 
+% 2026_02_10 by Sean Brennan, sbrennan@psu.edu
+% - In script_demo_VD
+%   % * Added check if repo is ready for release
+% - Added roundedRectangle function
+% - Added test cases for all functions
+% - Deprecated unused functions
+% - Fixed fcn_PlotTire_roundedRectangle to have correct standard
+%   % format
+% (new release)
 
 % TO-DO:
 % - 2026_02_08 by Sean Brennan, sbrennan@psu.edu
-%   % * Add items here
-
+%   % - Add motion blur model, maybe?
 
 %% Make sure we are running out of root directory
 st = dbstack; 
@@ -132,6 +141,13 @@ setenv('MATLABFLAG_PLOTROAD_REFERENCE_ALTITUDE','344.189');
 setenv('MATLABFLAG_PLOTROAD_ALIGNMATLABLLAPLOTTINGIMAGES_LAT','-0.0000008');
 setenv('MATLABFLAG_PLOTROAD_ALIGNMATLABLLAPLOTTINGIMAGES_LON','0.0000054');
 
+%% Check if repo is ready for release
+if 1==0
+	figNum = 999999;
+	repoShortName = '_PlotTire_';
+	fcn_DebugTools_testRepoForRelease(repoShortName, (figNum));
+end
+
 %% Start of Demo Code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -148,6 +164,94 @@ setenv('MATLABFLAG_PLOTROAD_ALIGNMATLABLLAPLOTTINGIMAGES_LON','0.0000054');
 
 disp('Welcome to the demo code for the PlotTire library!')
 
+%% fcn_PlotTire_parseTireSidewallCode and fcn_PlotTire_plotTireDimensions
+figNum = 10001;
+titleString = sprintf('DEMO: fcn_PlotTire_parseTireSidewallCode and fcn_PlotTire_plotTireDimensions');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+tireCodeCharacters = '205/55R16 91V';
+
+% Call the function
+tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (figNum));
+
+fcn_PlotTire_plotTireDimensions(tireParameters,(figNum));
+
+%% fcn_PlotTire_roundedRectangle
+figNum = 10002;
+titleString = sprintf('DEMO: fcn_PlotTire_roundedRectangle');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+% Fill parameters
+L = 0.4;
+W = 1.0;
+cornerShape = 'ellipse';
+cornerParams = [L/4 W/20];
+NcornerPoints = 24;
+
+% Call the function
+XYpoints = fcn_PlotTire_roundedRectangle(L, W, ...
+	(cornerShape), (cornerParams), (NcornerPoints), (figNum));
+
+%% fcn_PlotTire_fillTireLocalXY and fcn_PlotTire_plotTireXY
+figNum = 10003;
+titleString = sprintf('DEMO: fcn_PlotTire_fillTireLocalXY');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+% Fill parameters
+tireCodeCharacters = '205/55R16 91V';
+tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
+
+
+for displayModel = 1:3
+	subplot(1,3,displayModel);
+	% Call the function
+	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (figNum));
+	title(sprintf('Model %.0f, %.0f points',displayModel, size(cellArrayOfPoints{displayModel,1},1)));
+end
+
+
+%% fcn_PlotTire_poseTireLocalToGlobal
+figNum = 10004;
+titleString = sprintf('DEMO: fcn_PlotTire_poseTireLocalToGlobal');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+% Fill parameters
+tireCodeCharacters = '205/55R16 91V';
+tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
+displayModel = 3;
+cellArrayOfLocalXYPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
+
+% Define the transformation parameters
+XYZ = [0.75 0 0]; % Example translation
+rollPitchYaw = [0 0 0*pi/180]; % Example rotation
+
+% Call the function
+cellArrayOfGlobalPoints1 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
+
+% Define the transformation parameters
+XYZ = [-0.75 0 0]; % Example translation
+rollPitchYaw = [0 0 0*pi/180]; % Example rotation
+
+% Call the function
+cellArrayOfGlobalPoints2 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
+
+% Define the transformation parameters
+XYZ = [0.75 2.5 0]; % Example translation
+rollPitchYaw = [0 0 30*pi/180]; % Example rotation
+
+% Call the function
+cellArrayOfGlobalPoints3 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
+
+% Define the transformation parameters
+XYZ = [-0.75 2.5 0]; % Example translation
+rollPitchYaw = [0 0 30*pi/180]; % Example rotation
+
+% Call the function
+cellArrayOfGlobalPoints4 = fcn_PlotTire_poseTireLocalToGlobal(cellArrayOfLocalXYPoints, XYZ, rollPitchYaw,  (figNum));
 
 %% Functions follow
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

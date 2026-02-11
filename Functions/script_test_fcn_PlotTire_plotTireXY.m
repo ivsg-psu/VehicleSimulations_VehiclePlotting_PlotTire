@@ -1,14 +1,14 @@
-% script_test_fcn_PlotTire_fillTireLocalXY.m
-% tests fcn_PlotTire_fillTireLocalXY.m
+% script_test_fcn_PlotTire_plotTireXY.m
+% tests fcn_PlotTire_plotTireXY.m
 
 % REVISION HISTORY:
 %
 % 2026_02_08 by Sean Brennan, sbrennan@psu.edu
-% - In script_test_fcn_PlotTire_fillTireLocalXY
+% - In script_test_fcn_PlotTire_plotTireXY
 %   % * Wrote the code originally, using script_test_fcn_Laps_break+DataIntoLapIndices
 %
 % 2026_02_10 by Sean Brennan, sbrennan@psu.edu
-% - In fcn_PlotTire_fillTireLocalXY
+% - In fcn_PlotTire_plotTireXY
 %   % * Added rounded-corner rectangle (model 2) form
 
 % TO-DO:
@@ -102,32 +102,39 @@ assert(size(cellArrayOfPoints,2)==1);
 assert(isequal(get(gcf,'Number'),figNum));
 
 
-%% DEMO case: models 1 to 3
+%% DEMO case: plotting models 1 to 3
 figNum = 10003;
-titleString = sprintf('DEMO case: model = 3');
+titleString = sprintf('DEMO case: plotting models 1 to 3');
 fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
 figure(figNum); clf;
 
 % Fill parameters
 tireCodeCharacters = '205/55R16 91V';
 tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-
+displayModel = 3;
+cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
 
 for displayModel = 1:3
 	subplot(1,3,displayModel);
+
+	tempCellArray = cell(displayModel,1);
+	for ith_cell = 1:displayModel
+		tempCellArray{ith_cell,1} = cellArrayOfPoints{ith_cell,1};
+	end
+	
 	% Call the function
-	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (figNum));
+	cellArrayOfPlotHandles = fcn_PlotTire_plotTireXY(tempCellArray, (figNum));
 	title(sprintf('Model %.0f, %.0f points',displayModel, size(cellArrayOfPoints{displayModel,1},1)));
 end
 
 sgtitle(titleString, 'Interpreter','none');
 
 % Check variable types
-assert(iscell(cellArrayOfPoints));
+assert(iscell(cellArrayOfPlotHandles));
 
 % Check variable sizes
-assert(size(cellArrayOfPoints,1)==3); 
-assert(size(cellArrayOfPoints,2)==1); 
+assert(size(cellArrayOfPlotHandles,1)==3); 
+assert(size(cellArrayOfPlotHandles,2)==1); 
 
 % Check variable values
 % Too many to check
@@ -177,113 +184,113 @@ assert(isequal(get(gcf,'Number'),figNum));
 % Figures start with 8
 
 close all;
-fprintf(1,'Figure: 8XXXXXX: FAST mode cases\n');
+fprintf(1,'Figure: 8XXXXXX: NO FAST mode cases because this is a plotting function\n');
 
-%% Basic example - NO FIGURE
-figNum = 80001;
-fprintf(1,'Figure: %.0f: FAST mode, empty figNum\n',figNum);
-figure(figNum); close(figNum);
-
-% Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = [];
-
-% Call the function
-cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), ([]));
-
-% Check variable types
-assert(iscell(cellArrayOfPoints));
-
-% Check variable sizes
-assert(size(cellArrayOfPoints,1)==1); 
-assert(size(cellArrayOfPoints,2)==1); 
-
-% Check variable values
-% Too many to check
-% Make sure plot did NOT open up
-figHandles = get(groot, 'Children');
-assert(~any(figHandles==figNum));
-
-
-%% Basic fast mode - NO FIGURE, FAST MODE
-figNum = 80002;
-fprintf(1,'Figure: %.0f: FAST mode, figNum=-1\n',figNum);
-figure(figNum); close(figNum);
-
-% Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = [];
-
-% Call the function
-cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-% Check variable types
-assert(iscell(cellArrayOfPoints));
-
-% Check variable sizes
-assert(size(cellArrayOfPoints,1)==1); 
-assert(size(cellArrayOfPoints,2)==1); 
-
-% Make sure plot did NOT open up
-figHandles = get(groot, 'Children');
-assert(~any(figHandles==figNum));
-
-
-%% Compare speeds of pre-calculation versus post-calculation versus a fast variant
-figNum = 80003;
-fprintf(1,'Figure: %.0f: FAST mode comparisons\n',figNum);
-figure(figNum);
-close(figNum);
-
-% Fill parameters
-tireCodeCharacters = '205/55R16 91V';
-tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = [];
-
-Niterations = 5;
-
-% Do calculation without pre-calculation
-tic;
-for ith_test = 1:Niterations
-
-	% Call the function
-	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), ([]));
-
-end
-slow_method = toc;
-
-% Do calculation with pre-calculation, FAST_MODE on
-tic;
-for ith_test = 1:Niterations
-
-	% Call the function
-	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
-
-end
-fast_method = toc;
-
-% Make sure plot did NOT open up
-figHandles = get(groot, 'Children');
-assert(~any(figHandles==figNum));
-
-% Plot results as bar chart
-figure(373737);
-clf;
-hold on;
-
-X = categorical({'Normal mode','Fast mode'});
-X = reordercats(X,{'Normal mode','Fast mode'}); % Forces bars to appear in this exact order, not alphabetized
-Y = [slow_method fast_method ]*1000/Niterations;
-bar(X,Y)
-ylabel('Execution time (Milliseconds)')
-
-
-% Make sure plot did NOT open up
-figHandles = get(groot, 'Children');
-assert(~any(figHandles==figNum));
-
+% %% Basic example - NO FIGURE
+% figNum = 80001;
+% fprintf(1,'Figure: %.0f: FAST mode, empty figNum\n',figNum);
+% figure(figNum); close(figNum);
+% 
+% % Fill parameters
+% tireCodeCharacters = '205/55R16 91V';
+% tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
+% displayModel = [];
+% 
+% % Call the function
+% cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), ([]));
+% 
+% % Check variable types
+% assert(iscell(cellArrayOfPoints));
+% 
+% % Check variable sizes
+% assert(size(cellArrayOfPoints,1)==1); 
+% assert(size(cellArrayOfPoints,2)==1); 
+% 
+% % Check variable values
+% % Too many to check
+% % Make sure plot did NOT open up
+% figHandles = get(groot, 'Children');
+% assert(~any(figHandles==figNum));
+% 
+% 
+% %% Basic fast mode - NO FIGURE, FAST MODE
+% figNum = 80002;
+% fprintf(1,'Figure: %.0f: FAST mode, figNum=-1\n',figNum);
+% figure(figNum); close(figNum);
+% 
+% % Fill parameters
+% tireCodeCharacters = '205/55R16 91V';
+% tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
+% displayModel = [];
+% 
+% % Call the function
+% cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
+% 
+% % Check variable types
+% assert(iscell(cellArrayOfPoints));
+% 
+% % Check variable sizes
+% assert(size(cellArrayOfPoints,1)==1); 
+% assert(size(cellArrayOfPoints,2)==1); 
+% 
+% % Make sure plot did NOT open up
+% figHandles = get(groot, 'Children');
+% assert(~any(figHandles==figNum));
+% 
+% 
+% %% Compare speeds of pre-calculation versus post-calculation versus a fast variant
+% figNum = 80003;
+% fprintf(1,'Figure: %.0f: FAST mode comparisons\n',figNum);
+% figure(figNum);
+% close(figNum);
+% 
+% % Fill parameters
+% tireCodeCharacters = '205/55R16 91V';
+% tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
+% displayModel = [];
+% 
+% Niterations = 5;
+% 
+% % Do calculation without pre-calculation
+% tic;
+% for ith_test = 1:Niterations
+% 
+% 	% Call the function
+% 	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), ([]));
+% 
+% end
+% slow_method = toc;
+% 
+% % Do calculation with pre-calculation, FAST_MODE on
+% tic;
+% for ith_test = 1:Niterations
+% 
+% 	% Call the function
+% 	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, (displayModel), (-1));
+% 
+% end
+% fast_method = toc;
+% 
+% % Make sure plot did NOT open up
+% figHandles = get(groot, 'Children');
+% assert(~any(figHandles==figNum));
+% 
+% % Plot results as bar chart
+% figure(373737);
+% clf;
+% hold on;
+% 
+% X = categorical({'Normal mode','Fast mode'});
+% X = reordercats(X,{'Normal mode','Fast mode'}); % Forces bars to appear in this exact order, not alphabetized
+% Y = [slow_method fast_method ]*1000/Niterations;
+% bar(X,Y)
+% ylabel('Execution time (Milliseconds)')
+% 
+% 
+% % Make sure plot did NOT open up
+% figHandles = get(groot, 'Children');
+% assert(~any(figHandles==figNum));
+% 
 
 %% BUG cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

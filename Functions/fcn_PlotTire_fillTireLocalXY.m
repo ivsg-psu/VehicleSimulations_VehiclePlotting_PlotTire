@@ -15,6 +15,11 @@ function cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, vararg
 %
 %          1: (default) square rectange, saved in cell array 1
 %
+%          2: elliptical cornered rectangle, saved in cell array 2
+%             (uses fcn_PlotTire_roundedRectangle)
+%          3: tread
+%
+%
 %      figNum - a figure number to plot results. If set to -1,
 %      skips any input checking or debugging, no figures will be generated,
 %      and sets up code to maximize speed.
@@ -42,6 +47,10 @@ function cellArrayOfPoints = fcn_PlotTire_fillTireLocalXY(tireParameters, vararg
 % - In fcn_PlotTire_fillTireLocalXY
 %   % * Wrote the code originally, using fcn_Laps_break+DataIntoLapIndices
 %   %   % as starter
+%
+% 2026_02_10 by Sean Brennan, sbrennan@psu.edu
+% - In fcn_PlotTire_fillTireLocalXY
+%   % * Added rounded-corner rectangle (model 2) form
 
 % TO-DO:
 %
@@ -170,9 +179,100 @@ XYpoints = [x y]-ones(length(x),1)*midPoint;
 cellArrayOfPoints{1,1} = XYpoints;
 
 if displayModel>=2
-	% Do nothing
+	% Fill parameters
+	L = 1;
+	W = 1;
+	cornerShape = 'ellipse';
+	cornerParams = [L/4 W/20];
+	NcornerPoints = 24;
+
+	% Call the fcn_PlotTire_roundedRectangle function
+	XYpointsNormalized = fcn_PlotTire_roundedRectangle(L, W, ...
+		(cornerShape), (cornerParams), (NcornerPoints), (-1));
+
+	Npoints = size(XYpointsNormalized,1);
+	XYpoints = XYpointsNormalized.*(ones(Npoints,1)*[tireParameters.sectionWidth_m tireParameters.radius_m*2]);
+	cellArrayOfPoints{2,1} = XYpoints;
 end
 
+if displayModel>=3
+
+	% Create a repeating pattern from -1 to 0 in X, and -1 to 1 in Y. This
+	% pattern will be flipped in X and then repeated at many angles to
+	% define the tire tread
+	halfTreadPattern = [
+		0.2000   -1
+		0.2000    1
+		NaN       NaN
+		0.2000   -1
+		0.7000    0
+		NaN       NaN
+		0.7000   -1
+		0.7000    1
+		NaN       NaN
+		0.7000    0
+		0.9000    0
+		];
+
+	fullTreadPattern = fcn_INTERNAL_flipNegateAndAppend(halfTreadPattern, 0);
+	treadPattern = [fullTreadPattern; nan nan];
+
+	% Find the radius versus X-posiiton for this tire
+	firstNegativeValue = find(XYpointsNormalized(:,2)<0,1);
+	positiveNormalizedHalfProfile = [0 0.5; XYpointsNormalized(1:firstNegativeValue-1,:)];
+	positiveNormalizedProfile = 2*positiveNormalizedHalfProfile;
+	fullNormalizedProfile = fcn_INTERNAL_flipNegateAndAppend(positiveNormalizedProfile, 1);
+
+	% Find the radius multiplier for the tread pattern. This is how much
+	% (percentage) the radius is at each x-value
+	radiusMultiplier = interp1(fullNormalizedProfile(:,1),fullNormalizedProfile(:,2),treadPattern(:,1));
+
+
+	% Across many angles in the tire, from 0 to 180, calculate what the
+	% pattern looks like from the top
+	Nangles = 32;
+
+	allTread = [];
+	allAngles = linspace(0,pi,Nangles+1)';
+	deltaAngle = allAngles(2)-allAngles(1);
+
+
+	% Loop through the angles from 0 to 360 degrees (not repeated the
+	% ends). Each y value in the tread pattern is an angle, and each x
+	% value is a radius. Use these to calculate the XYZ positions of all
+	% the points.
+
+	% Find the x pattern and radii for the treadPattern. These don't change
+	% with angle
+	xPattern = treadPattern(:,1).*tireParameters.sectionWidth_m/2;
+	radii = radiusMultiplier*tireParameters.radius_m;
+
+	for ith_angle = 1:Nangles
+
+		% Find the angles for this specific section of tire
+		angleStart = allAngles(ith_angle);
+		angleEnd = angleStart+deltaAngle;
+		angles = interp1([-1 1],[angleStart angleEnd],treadPattern(:,2));
+
+
+		% Calculate XYZ values
+		XYZtread = [xPattern radii.*cos(angles) radii.*sin(angles)];
+
+		% Keep only the positive Z values
+		positiveZs = XYZtread(:,3)>=0;
+
+		% Append results into growing array
+		allTread = [allTread; XYZtread(positiveZs,1:2); nan nan]; %#ok<AGROW>
+
+		% For debugging
+		if 1==0 %flag_do_debug
+			figure(23432);clf;
+			plot(allTread(:,1),allTread(:,2),'k-','Linewidth',2);
+			axis equal
+		end
+	end
+	cellArrayOfPoints{3,1} = allTread;
+end
 
 %% Plot the results (for debugging)?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -187,25 +287,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if flag_do_plots
 
-	outer_r = tireParameters.radius_m;
-	
-	% Create figure
-	h_fig = figure(figNum);
-	set(h_fig,'Name','Tire Top View','Color','w');
-	axis equal; hold on; box on;
-	xlabel('meters'); ylabel('meters');
-
-	% Draw outer tire and rim
-	patch(XYpoints(:,1), XYpoints(:,2), 0.9*[1 1 1], 'EdgeColor', 0.2*[1 1 1]); % tire rubber
-
-	% Limits and styling
-	pad = outer_r*0.15;
-	xlim([-outer_r-pad, outer_r+pad]);
-	ylim([-outer_r-pad, outer_r+pad]);
-	title(sprintf('Tire: %s', string(tireParameters.rawInput)));
-	set(gca,'FontSize',11);
-
-	hold off;
+	fcn_PlotTire_plotTireXY(cellArrayOfPoints, (figNum));
 end
 
 if flag_do_debug
@@ -226,3 +308,26 @@ end % Ends main function
 % See: https://patorjk.com/software/taag/#p=display&f=Big&t=Functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%§
 
+function fullPattern = fcn_INTERNAL_flipNegateAndAppend(inputHalfPattern, flagKeepOnlyUnique)
+% Flips the pattern, change the negative x to positive, and append to
+% the end to define the entire pattern from -1 to 1 in x, -1 to 1 in y
+
+Npatterns = size(inputHalfPattern,1);
+flippedHalfPattern = flipud(inputHalfPattern.*(ones(Npatterns,1)*[-1 1]));
+fullPatternWithRepeats = [flippedHalfPattern; inputHalfPattern];
+
+% Keep only the unique values
+if 1==flagKeepOnlyUnique
+	[~, indicesUnique] = unique(fullPatternWithRepeats(:,1));
+	fullPattern = fullPatternWithRepeats(indicesUnique,:);
+else
+	fullPattern = fullPatternWithRepeats;
+end
+
+
+% For debugging - plot the pattern?
+if 1==0
+	figure(38383);clf;
+	plot(fullPattern(:,1),fullPattern(:,2),'k-','Linewidth',2);
+end
+end

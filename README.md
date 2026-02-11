@@ -58,10 +58,13 @@ Search for this, and you will find!
       <ul>
         <li><a href="#basic-support-functions">Basic Support Functions</li>
         <ul>
-          <li><a href="#fcn_laps_plotlapsxy">fcn_Laps_plotLapsXY - Plotting utility for lap outputs</li>
-          <li><a href="#fcn_laps_fillsamplelaps">fcn_Laps_fillSampleLaps - Creates test datasets</li>
-          <li><a href="#fcn_laps_plotzonedefinition">fcn_Laps_plotZoneDefinition - Plots zone definitions</li>
-          <li><a href="#fcn_laps_fillsamplelaps">fcn_Laps_fillSampleLaps - Creates test datasets</li>
+          <li><a href="#fcn_plottire_posetirelocaltoglobal">fcn_PlotTire_poseTireLocalToGlobal - fills in the tire's XY coordinate view points.</li>
+          <li><a href="#fcn_plottire_roundedrectangle">fcn_PlotTire_roundedRectangle creates a 2D outline of a rectangle with elliptical corners.</li>
+          <li><a href="#fcn_plottire_plottirexy">fcn_PlotTire_plotTireXY - draws a 2D top view of a tire using provided point data and returns the graphic handles of the plotted elements.</li>
+          <li><a href="#fcn_plottire_parsetiresidewallcode">fcn_PlotTire_parseTireSidewallCode - Parses tire sidewall characters into dimensions (SI).</li>
+          <li><a href="#fcn_plottire_filltirelocalxy">fcn_PlotTire_fillTireLocalXY - Fills in the tire's XY coordinate view points.</li>
+          <li><a href="#fcn_plottire_plottiredimensions">fcn_PlotTire_plotTireDimensions - Plots tire dimensions with labeling.</li>
+          
         </ul>
         <li><a href="#core-functions">Core Functions</li>
         <ul>
@@ -160,12 +163,12 @@ The following are the top level directories within the repository:
 
 ### Basic Support Functions
 
-#### fcn_Laps_plotLapsXY
+#### fcn_PlotTire_poseTireLocalToGlobal
 
-The function fcn_Laps_plotLapsXY plots the laps. For example, the function was used to make the plot below of the last Sample laps.
+The function fcn_PlotTire_poseTireLocalToGlobal converts points defined in a tire's local reference frame into global coordinates by applying a specified orientation and position.
 <pre align="center">
-  <img src=".\Images\fcn_Laps_plotLapsXY.png" alt="fcn_Laps_plotLapsXY picture" width="400" height="300">
-  <figcaption>Fig.1 - The function fcn_Laps_plotLapsXY plots the lap outputs.</figcaption>
+  <img src=".\Images\fcn_PlotTire_poseTireLocalToGlobal.png" alt="fcn_PlotTire_poseTireLocalToGlobal picture" width="400" height="300">
+  <figcaption>Fig.1 - The function fcn_PlotTire_poseTireLocalToGlobal transforms tire-local points into global coordinates.</figcaption>
   <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
 </pre>
 
@@ -173,13 +176,13 @@ The function fcn_Laps_plotLapsXY plots the laps. For example, the function was u
 
 ***
 
-#### fcn_Laps_fillSampleLaps
+#### fcn_PlotTire_roundedRectangle
 
-The function fcn_Laps_fillSampleLaps creates dummy data to test lap functions. The test laps are in general difficult situations, including scenarios where laps loop back onto themself and/or with separate looping structures. These challenges show that the library can work on varying and complicated data sets. NOTE: within this function, commented out typically, there is code to allow users to draw their own lap test cases.
+The function fcn_PlotTire_roundedRectangle generates a set of two-dimensional points that define a rectangle with rounded corners, where the corner shape can be specified as an ellipse, a circle, or a custom function.
 
 <pre align="center">
-  <img src=".\Images\fcn_Laps_fillSampleLaps.png" alt="fcn_Laps_fillSampleLaps picture" width="400" height="300">
-  <figcaption>Fig.2 - The function fcn_Laps_fillSampleLaps creates test data sets for exercising lap functions.</figcaption>
+  <img src=".\Images\fcn_PlotTire_roundedRectangle.png" alt="fcn_PlotTire_roundedRectangle picture" width="400" height="300">
+  <figcaption>Fig.2 - The function fcn_PlotTire_roundedRectangle creates a 2D outline of a tire top view.</figcaption>
   <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
 </pre>
 
@@ -187,13 +190,13 @@ The function fcn_Laps_fillSampleLaps creates dummy data to test lap functions. T
 
 ***
 
-#### fcn_Laps_plotZoneDefinition
+#### fcn_PlotTire_plotTireXY
 
-The function fcn_Laps_plotZoneDefinition plots any type of zone, allowing user-defined colors. For example, the figure below shows a radial zone for the start, and a line segment for the end. For the line segment, an arrow is given that indicates which direction the segment must be crossed in order for the condition to be counted.
+The function fcn_PlotTire_plotTireXY takes one or more sets of 2D tire geometry points (such as the bounding shape, tire profile, and tread pattern), plots them together in a top-down view, and returns the graphical handles for each plotted layer so they can be further modified or analyzed.
 
 <pre align="center">
   <img src=".\Images\fcn_Laps_plotZoneDefinition.png" alt="fcn_Laps_plotZoneDefinition picture" width="400" height="300">
-  <figcaption>Fig.3 - The function fcn_Laps_plotZoneDefinition plots the zone definitions.</figcaption>
+  <figcaption>Fig.3 - The function fcn_PlotTire_plotTireXY plots a 2D top view of a tire using provided point data.</figcaption>
   <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
 </pre>
 
@@ -201,15 +204,43 @@ The function fcn_Laps_plotZoneDefinition plots any type of zone, allowing user-d
 
 ***
 
-#### fcn_Laps_plotSegmentZoneDefinition
+#### fcn_PlotTire_parseTireSidewallCode
 
-The function fcn_Laps_plotSegmentZoneDefinition plots a segment zone, allowing user-defined colors. This function is mostly used to support fcn_Laps_plotZoneDefinition.m.
+The function fcn_PlotTire_parseTireSidewallCode parses a tire sidewall specification string and returns a structure of tire measurements in SI units.
 
-<!--pre align="center">
-  <img src=".\Images\fcn_Laps_plotZoneDefinition.png" alt="fcn_Laps_plotZoneDefinition picture" width="400" height="300">
-  <figcaption>Fig.3 - The function fcn_Laps_plotZoneDefinition plots the zone definitions.</figcaption>
-  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font>
-</pre -->
+<pre align="center">
+  <img src=".\Images\fcn_PlotTire_parseTireSidewallCode.png" alt="fcn_PlotTire_parseTireSidewallCode picture" width="400" height="300">
+  <figcaption>Fig.4 - The function fcn_PlotTire_parseTireSidewallCode parses tire sidewall characters into dimensions (SI).</figcaption>
+  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font>-->
+</pre>
+
+<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
+
+***
+
+#### fcn_PlotTire_fillTireLocalXY
+
+The function fcn_PlotTire_fillTireLocalXY generates a simple set of two-dimensional points that represent a tire in its own local coordinate frame, based on basic tire dimensions such as section width and radius.
+
+<pre align="center">
+  <img src=".\Images\fcn_PlotTire_fillTireLocalXY.png" alt="fcn_PlotTire_fillTireLocalXY picture" width="400" height="300">
+  <figcaption>Fig.5 - The function fcn_PlotTire_fillTireLocalXY fills in the tire's XY coordinate view points.</figcaption>
+  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font>-->
+</pre>
+
+<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
+
+***
+
+#### fcn_PlotTire_plotTireDimensions
+
+The function fcn_PlotTire_plotTireDimensions creates a visual diagram of a tire that shows and labels its main physical dimensions, such as rim size, overall diameter, sidewall height, and width.
+
+<pre align="center">
+  <img src=".\Images\fcn_PlotTire_parseTireSidewallCode.png" alt="fcn_PlotTire_parseTireSidewallCode picture" width="400" height="300">
+  <figcaption>Fig.6 - The function fcn_PlotTire_parseTireSidewallCode - Plots tire dimensions with labeling.</figcaption>
+  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font>-->
+</pre>
 
 <a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
 

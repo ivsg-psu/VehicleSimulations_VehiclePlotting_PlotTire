@@ -64,15 +64,6 @@ Search for this, and you will find!
           <li><a href="#fcn_plottire_parsetiresidewallcode">fcn_PlotTire_parseTireSidewallCode - Parses tire sidewall characters into dimensions (SI).</li>
           <li><a href="#fcn_plottire_filltirelocalxy">fcn_PlotTire_fillTireLocalXY - Fills in the tire's XY coordinate view points.</li>
           <li><a href="#fcn_plottire_plottiredimensions">fcn_PlotTire_plotTireDimensions - Plots tire dimensions with labeling.</li>
-          
-        </ul>
-        <li><a href="#core-functions">Core Functions</li>
-        <ul>
-          <li><a href="#fcn_laps_breakdataintolaps">fcn_Laps_breakDataIntoLaps - Core function of the repo, breaks data into laps</li>
-          <li><a href="#fcn_laps_checkzonetype">fcn_Laps_checkZoneType - Checks inputs to determine if zone is a point or line segment type</li>
-          <li><a href="#fcn_laps_breakdataintolapindices">fcn_Laps_breakDataIntoLapIndices - A more advanced version of fcn_Laps_breakDataIntoLaps, where the outputs are the indices that apply to each lap.</li>
-          <li><a href="#fcn_laps_findsegmentzonestartstop">fcn_Laps_findSegmentZoneStartStop - Supporting function that finds the portions of a path that meet a segment zone criteria</li>
-          <li><a href="#fcn_laps_findpointzonestartstopandminimum">fcn_Laps_findPointZoneStartStopAndMinimum - Supporting function that finds the portions of a path that meet a point zone criteria</li>
         </ul>
       </ul>
     <li><a href="#usage">Usage</a></li>
@@ -195,7 +186,7 @@ The function fcn_PlotTire_roundedRectangle generates a set of two-dimensional po
 The function fcn_PlotTire_plotTireXY takes one or more sets of 2D tire geometry points (such as the bounding shape, tire profile, and tread pattern), plots them together in a top-down view, and returns the graphical handles for each plotted layer so they can be further modified or analyzed.
 
 <pre align="center">
-  <img src=".\Images\fcn_Laps_plotZoneDefinition.png" alt="fcn_Laps_plotZoneDefinition picture" width="400" height="300">
+  <img src=".\Images\fcn_PlotTire_fillTireLocalXY.png" alt="fcn_PlotTire_fillTireLocalXY picture" width="400" height="300">
   <figcaption>Fig.3 - The function fcn_PlotTire_plotTireXY plots a 2D top view of a tire using provided point data.</figcaption>
   <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
 </pre>
@@ -240,78 +231,6 @@ The function fcn_PlotTire_plotTireDimensions creates a visual diagram of a tire 
   <img src=".\Images\fcn_PlotTire_parseTireSidewallCode.png" alt="fcn_PlotTire_parseTireSidewallCode picture" width="400" height="300">
   <figcaption>Fig.6 - The function fcn_PlotTire_parseTireSidewallCode - Plots tire dimensions with labeling.</figcaption>
   <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font>-->
-</pre>
-
-<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
-
-***
-
-### Core Functions
-
-#### fcn_Laps_breakDataIntoLaps
-
-The function fcn_Laps_breakDataIntoLaps is the core function for this repo that breaks data into laps. Note: the example shown below uses radial zone definitions, and the results illustrate how a lap, when it is within a start zone, starts at the FIRST point within a start zone. Similarly, each lap ends at the LAST point before exiting the end zone definition. The input data is a traversal type for this particular function.
-
-<pre align="center">
-  <img src=".\Images\fcn_Laps_breakDataIntoLaps.png" alt="fcn_Laps_breakDataIntoLaps picture" width="400" height="300">
-  <figcaption>Fig.4 - The function fcn_Laps_breakDataIntoLaps is the core function in the repo, and breaks data into laps.</figcaption>
-  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
-</pre>
-
-<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
-
-***
-
-#### fcn_Laps_checkZoneType
-
-The function fcn_Laps_checkZoneType supports fcn_Laps_breakDataIntoLaps by checking if the zone definition inputs are either a point or line segment zone specification.
-
-<!--pre align="center">
-  <img src=".\Images\fcn_Laps_breakDataIntoLaps.png" alt="fcn_Laps_breakDataIntoLaps picture" width="400" height="300">
-  <figcaption>Fig.5 - The function fcn_Laps_checkZoneType checks inputs to determine if zones are point or line segment type.</figcaption>
-  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font>
-</pre-->
-
-<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
-
-***
-
-#### fcn_Laps_breakDataIntoLapIndices
-
-The function fcn_Laps_breakDataIntoLapIndices is a more advanced version of fcn_Laps_breakDataIntoLaps, where the outputs are the indices that apply to each lap. The input type is also easier to use, a "path" type which is just an array of [X Y]. The example here shows the use of a segment type zone for the start zone, a point-radius type zone for the end zone. The results of this function are the row indices of the data. The plot below illustrates that the function returns 3 laps in this example, and as well returns the pre-lap and post-lap data. One can observe that it is common that the prelap data for one lap (Lap 2) consists of the post-lap data for the prior lap (Lap 1).
-
-<pre align="center">
-  <img src=".\Images\fcn_Laps_breakDataIntoLapIndices.png" alt="fcn_Laps_breakDataIntoLapIndices picture" width="600" height="300">
-  <figcaption>Fig.5 - The function fcn_Laps_breakDataIntoLapIndices is a more advanced version of fcn_Laps_breakDataIntoLaps, where the outputs are the indices that apply to each lap.</figcaption>
-  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
-</pre>
-
-<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
-
-***
-
-#### fcn_Laps_findSegmentZoneStartStop
-
-The function fcn_Laps_findSegmentZoneStartStop is a supporting function that finds the portions of a path that meet a segment zone criteria, returning the starting/ending indices for every crossing of a segment zone. The crossing must cross in the correct direction, and a segment is considered crossed if either the start or end of segment lie on the segment line. This is illustrated in the challenging example shown below, where the input path (thin blue) starts at the top, and then zig-zags repeatedly over a segment definition (green). For each time the blue line crosses the line segment, that portion of the path is saved as a separate possible crossing and thus, for this example, there are 5 possible crossings.
-
-<pre align="center">
-  <img src=".\Images\fcn_Laps_findSegmentZoneStartStop.png" alt="fcn_Laps_findSegmentZoneStartStop picture" width="400" height="300">
-  <figcaption>Fig.5 - The function fcn_Laps_findSegmentZoneStartStop is a supporting function that finds the portions of a path that meet a segment zone criteria, returning the starting/ending indices for every crossing of a segment zone.</figcaption>
-  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
-</pre>
-
-<a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>
-
-***
-
-#### fcn_Laps_findPointZoneStartStopAndMinimum
-
-The function fcn_Laps_findPointZoneStartStopAndMinimum is a supporting function that finds the portions of a path that meet a point zone criteria, returning the starting/ending indices for every crossing of a point zone. Note that a minimum number of points must be within the zone for it to be considered activated, which is useful for real-world data (such as GPS recordings) where noise may randomly push one point of a path randomly into a zone, and then jump out. This number of points threshold can be user-defined. In the example below, the threshold is 4 points and one can see that, for a path that crosses over the zone three times, that two of the crossings are found to meet the 4-point criteria.
-
-<pre align="center">
-  <img src=".\Images\fcn_Laps_findPointZoneStartStopAndMinimum.png" alt="fcn_Laps_findPointZoneStartStopAndMinimum picture" width="400" height="300">
-  <figcaption>Fig.6 - The function fcn_Laps_findPointZoneStartStopAndMinimum is a supporting function that finds the portions of a path that meet a point zone criteria, returning the starting/ending indices for every crossing of a point zone.</figcaption>
-  <!--font size="-2">Photo by <a href="https://unsplash.com/ko/@samuelchenard?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Samuel Chenard</a> on <a href="https://unsplash.com/photos/Bdc8uzY9EPw?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></font -->
 </pre>
 
 <a href="#vehiclesimulations_vehicleplotting_plottire">Back to top</a>

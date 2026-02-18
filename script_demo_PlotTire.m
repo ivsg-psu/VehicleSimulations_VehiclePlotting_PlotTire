@@ -1,4 +1,3 @@
-
 %% Introduction to and Purpose of the Code
 % This is the explanation of the code that can be found by running
 %
@@ -35,6 +34,8 @@
 % - Fixed fcn_PlotTire_roundedRectangle to have correct standard
 %   % format
 % (new release)
+% 
+% 2026_02_18 by Sean Brennan, sbrennan@psu.edu
 
 % TO-DO:
 % - 2026_02_08 by Sean Brennan, sbrennan@psu.edu

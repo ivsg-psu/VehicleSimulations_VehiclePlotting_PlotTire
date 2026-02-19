@@ -20,8 +20,12 @@ function fcn_3DVehPlot_drawTire(tire,varargin)
 %                   tire.width - the width of the tire
 %                   tire.length - the length of the tire
 %
-%          varargin: (option) the number of the figure where plotting is
-%          occuring
+%
+%      (OPTIONAL INPUTS)
+%
+%      figNum: a figure number to plot results. If set to -1, skips any
+%      input checking or debugging, no figures will be generated, and sets
+%      up code to maximize speed. 
 %
 % OUTPUTS:
 %
@@ -31,30 +35,56 @@ function fcn_3DVehPlot_drawTire(tire,varargin)
 %
 % This function was written on 2022_08_25 by S. Brennan
 % Questions or comments? sbrennan@psu.edu
+
+% REVISION HISTORY:
 %
+% As: fcn_3D+VehPlot_drawTire
+%
+% 2022_08_25 by Sean Brennan, sbrennan@psu.edu
+% - In fcn_3D+VehPlot_drawTire
+%   % * Wrote the code originally
+%
+% 2026_02_19 by Sean Brennan, sbrennan@psu.edu
+% - In fcn_3D+VehPlot_drawTire
+%   % * Updated comments
 
-% Revision history:
-% 2022_08_25 
-% -- wrote the code
+% TO-DO:
+%
+% 2026_02_08 by Sean Brennan, sbrennan@psu.edu
+% - (fill in items here)
 
+% Check if flag_max_speed set. This occurs if the figNum variable input
+% argument (varargin) is given a number of -1, which is not a valid figure
+% number.
+MAX_NARGIN = 4; % The largest Number of argument inputs to the function
+flag_max_speed = 0; % The default. This runs code with all error checking
+if (nargin==MAX_NARGIN && isequal(varargin{end},-1))
+    flag_do_debug = 0; % % % % Flag to plot the results for debugging
+    flag_check_inputs = 0; % Flag to perform input checking
+    flag_max_speed = 1;
+else
+    % Check to see if we are externally setting debug mode to be "on"
+    flag_do_debug = 0; % % % % Flag to plot the results for debugging
+    flag_check_inputs = 1; % Flag to perform input checking
+    MATLABFLAG_LAPS_FLAG_CHECK_INPUTS = getenv("MATLABFLAG_LAPS_FLAG_CHECK_INPUTS");
+    MATLABFLAG_LAPS_FLAG_DO_DEBUG = getenv("MATLABFLAG_LAPS_FLAG_DO_DEBUG");
+    if ~isempty(MATLABFLAG_LAPS_FLAG_CHECK_INPUTS) && ~isempty(MATLABFLAG_LAPS_FLAG_DO_DEBUG)
+        flag_do_debug = str2double(MATLABFLAG_LAPS_FLAG_DO_DEBUG);
+        flag_check_inputs  = str2double(MATLABFLAG_LAPS_FLAG_CHECK_INPUTS);
+    end
+end
 
-%% Set up for debugging
-flag_do_debug = 0; % Flag to plot the results for debugging
+% flag_do_debug = 1;
 
-if flag_do_debug
+if flag_do_debug % If debugging is on, print on entry/exit to the function
     st = dbstack; %#ok<*UNRCH>
-    fprintf(1,'Starting function: %s, in file: %s\n',st(1).name,st(1).file);
+    fprintf(1,'STARTING function: %s, in file: %s\n',st(1).name,st(1).file);
+    debug_figNum = 999978; %#ok<NASGU>
+else
+    debug_figNum = []; %#ok<NASGU>
 end
 
-if flag_do_debug
-    fig_num = 2;
-    figure(fig_num);
-    flag_make_new_plot = 1;
-end
-
-
-
-%% check input arguments
+%% check input arguments?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   _____                   _
 %  |_   _|                 | |
@@ -66,41 +96,64 @@ end
 %              |_|
 % See: http://patorjk.com/software/taag/#p=display&f=Big&t=Inputs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if nargin < 1 || nargin > 4
-    error('Incorrect number of input arguments.')
-end
+if 0==flag_max_speed
+    if flag_check_inputs
+        % Are there the right number of inputs?
+        narginchk(1,MAX_NARGIN);
 
-flag_make_new_plot = 0; % Default is not to make a new plot
-if 2 <= nargin
-    fig_num = varargin{end};
-    figure(fig_num);
-    
-    % Check to see if the figure has user data within it already
-    handles = get(fig_num,'UserData');
-    if isempty(handles)
-        flag_make_new_plot = 1;
+        % % Check the input_path variables
+        % fcn_DebugTools_checkInputsToFunctions(input_path, 'path2or3D');
+
+        % NOTE: the start_definition required input is checked below!
     end
-    try
-        temp = handles.h_tires.(tire.name); %#ok<NASGU>
-    catch
-        flag_make_new_plot = 1;
+end
+
+% The following area checks for variable argument inputs (varargin)
+
+% Does the user want to specify the plot_str = 'k-'?
+% Set defaults first:
+plot_str = 'k-'; % Default case
+% Check for user input
+if 3 <= nargin
+	temp = varargin{1};
+	if ~isempty(temp)
+		plot_str = temp;
+	end
+end
+
+% Does the user want to specify vehicle_handle?
+vehicle_handle = []; % Default case
+if 4 <= nargin
+    temp = varargin{2};
+    if ~isempty(temp)
+       vehicle_handle = temp;        
     end
-    
-else
-    fig = gcf; % create new figure with next default index
-    fig_num = get(fig,'Number');
-    flag_make_new_plot = 1;
 end
 
-% Check to see if a plot type is given?
-plot_str = 'k-';
-if 3 == nargin
-    plot_str = varargin{1};
+% Does user want to show the plots?
+flag_do_plots = 0; % Default is to NOT show plots
+figNum = [];
+if (0==flag_max_speed) && (2 == nargin) 
+    temp = varargin{end};
+    if ~isempty(temp) % Did the user NOT give an empty figure number?
+        figNum = temp;
+
+		% Check to see if the figure has user data within it already
+		handles = get(figNum,'UserData');
+		if isempty(handles)
+			flag_do_plots = 1;
+		end
+		try
+			temp = handles.h_tires.(tire.name); %#ok<NASGU>
+		catch
+			flag_do_plots = 1;
+		end
+    end
 end
 
-vehicle_handle = [];
-if 4 == nargin
-    vehicle_handle = varargin{2};
+if isempty(figNum)
+	tempHandle = figure;
+	figNum = get(tempHandle,'Number');
 end
 
 %% Start the main code
@@ -113,15 +166,15 @@ end
 %  |_|  |_|\__,_|_|_| |_|
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-tire_type = 3;
+tire_type = 2;
 
 switch tire_type
     case 1 % Simple square tire
-        plotSimpleTire(tire,flag_make_new_plot,fig_num,plot_str,vehicle_handle);
+        plotSimpleTire(tire,flag_do_plots, figNum,plot_str,vehicle_handle);
     case 2  % Simple 3D spokes - may cause the image to jump when animated
-        plotSpokeTire(tire, flag_make_new_plot,fig_num,plot_str,vehicle_handle);
+        plotSpokeTire(tire, flag_do_plots, figNum,plot_str,vehicle_handle);
     case 3  % Mesh tire
-        plotMeshTire(tire, flag_make_new_plot,fig_num,plot_str,vehicle_handle);
+        plotMeshTire(tire, flag_do_plots, figNum,plot_str,vehicle_handle);
         % view(3);
     otherwise
         warning('Unknown tire type selected');               
@@ -188,7 +241,7 @@ if flag_make_new_plot
     end
     
     % Plot the tire
-    handles.h_tires.(tire.name).body   = plot_box(0,0,tire_box,plot_str);  % Tire body    
+    handles.h_tires.(tire.name).body   = fcn_INTERNAL_plotBox(0,0,tire_box,plot_str);  % Tire body    
     
     % Associate the plots with the transform object
     set(handles.h_tires.(tire.name).body,'Parent',transform_object);   
@@ -246,19 +299,29 @@ if flag_make_new_plot
         -tire.width/2 -tire_radius];
    
     
-    % Draw spokes?
+    % Fill spoke XYZ data
+	% X is along tire axle
+	% Y is centerline of tire
+	% Z is vertical (out of page)
+
     spoke_interval = 20*pi/180;
     tire_spoke_angles = (0:spoke_interval:2*pi)'; %  - tire.rolling_angle;
     N_spokes = length(tire_spoke_angles);
     tire_spoke_y = tire_radius*cos(tire_spoke_angles);
     tire_spoke_z = tire_radius*sin(tire_spoke_angles);
     
-    % The spokes are set up as [x_start y_start x_end y_end]
+    % The spokes are set up as [x_start y_start z_start x_end y_end z_end]
     tire_spoke_start = ...
         [(-tire.width /2)*ones(N_spokes,1), tire_spoke_y, tire_spoke_z];
     tire_spoke_end = ...
         [(+tire.width /2)*ones(N_spokes,1), tire_spoke_y, tire_spoke_z];
-    tire_spokes = [tire_spoke_start, tire_spoke_end];
+    tire_spokes = [tire_spoke_start, tire_spoke_end, ones(N_spokes,1)*[nan nan nan]];
+
+	% Redistribute the data so that it is [XYZstart; XYZend; nan]
+	tireSpokesXYZ = reshape(tire_spokes',3,[])';
+
+	tireXYZ = [tireSpokesXYZ; tire_spoke_start; nan nan nan; tire_spoke_end];
+
        
     % Grab the axis handle
     figure(fig_num);
@@ -282,26 +345,20 @@ if flag_make_new_plot
     end
     
     % Plot the tire
-    handles.h_tires.(tire.name).body   = plot_box(0,0,tire_box,plot_str);  % Tire body    
+    handles.h_tires.(tire.name).body   = fcn_INTERNAL_plotBox(0,0,tire_box,plot_str);  % Tire body    
     
     % Associate the plots with the transform object
     set(handles.h_tires.(tire.name).body,'Parent',tire_body_transform_object);   
     
     % Plot the spokes   
-    %     % Tag hidden angles to hide them
-    %     spoke_angles = mod(spoke_angles,2*pi);
-    %     spokes(spoke_angles>pi,:) = NaN;
-    h = zeros(size(tire_spoke_angles));
-    for i_spoke = 1:length(tire_spoke_angles(:,1))
-        % h_spokes = plot_3Dspoke(flag_plot_exists, h_spokes_old, spoke, spoke_angle, varargin)    % plot all the spokes
-        h(i_spoke)= plot_3Dspoke(0,0,tire_spokes(i_spoke,:),tire_spoke_angles(i_spoke),plot_str); % Tire spokes
-        
-        % Associate the plots with the transform object
-        set(h(i_spoke),'Parent',tire_spokes_transform_object);
-    end
+	% h_spokes = plot_3Dspoke(flag_plot_exists, h_spokes_old, spoke, spoke_angle, varargin)    % plot all the spokes
+	h_spokes= plot_3Dspoke(0,0,tireXYZ,plot_str); % Tire spokes
+
+	% Associate the plots with the transform object
+	set(h_spokes,'Parent',tire_spokes_transform_object);
     
     % Save the handles
-    handles.h_tires.(tire.name).spokes = h;
+    handles.h_tires.(tire.name).spokes = h_spokes;
     
 
     
@@ -413,12 +470,14 @@ if flag_make_new_plot
     inner_radius = 0.7; % How far the inner radius is, as percentage of outer radius
     shift_up = (1+inner_radius)/2;
     resizing = (1-shift_up);
-    points_shifted = (points_normalized*[1 0;0 resizing])+[0 shift_up];
+    tireCrossSection = (points_normalized*[1 0;0 resizing])+[0 shift_up];
     if flag_do_debug
-        figure(387383); plot(points_shifted(:,1),points_shifted(:,2),'k.-');
+        figure(387383); plot(tireCrossSection(:,1),tireCrossSection(:,2),'k.-');
     end
     
-    N_cross_sections = length(points_shifted(:,1));
+
+
+    N_cross_sections = length(tireCrossSection(:,1));
     
     %     % Find the ones greater than zero, use these as radii
     %     first_negative_y = find(points(:,2)<0,1);
@@ -438,10 +497,10 @@ if flag_make_new_plot
     for ith_cross_section = 1:N_cross_sections
         % Assume a circular cross section, and use the x value to get the
         % height
-        y_height = (tire.width/2)*points_shifted(ith_cross_section,1);
+        y_height = (tire.width/2)*tireCrossSection(ith_cross_section,1);
         
         % Use the y value to get the radius of the tire
-        radius =  (tire.length/2)*points_shifted(ith_cross_section,2);
+        radius =  (tire.length/2)*tireCrossSection(ith_cross_section,2);
         cross_section_xz = circular_XZ_points_normalized*radius;
         
         tire_cross_sections(ith_cross_section).data = [cross_section_xz(:,1) y_height*ones_lens cross_section_xz(:,2)];
@@ -463,13 +522,11 @@ if flag_make_new_plot
     end
     
     h_tire_data = fcn_PlotWZ_createPatchesFromNSegments(tire_cross_sections,debug_fig);
-    h_tire = patch(h_tire_data);        
+    
+	
+	% Plot the tire
+	h_tire = patch(h_tire_data);
     set(h_tire,'FaceColor','flat','FaceAlpha','0.8','EdgeColor',[1 1 1]*0.2);
-    
-    
-
-    
-    % Plot the tire
     handles.h_tires.(tire.name).body   = h_tire; % plot_box(0,0,tire_box,plot_str);  % Tire body    
     
     % Associate the plots with the transform object
@@ -540,7 +597,8 @@ end
 %                                      
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function h_box = plot_box(flag_plot_exists, h_box_old, corners, varargin)    % plot all the boxes
+%% fcn_INTERNAL_plotBox
+function h_box = fcn_INTERNAL_plotBox(flag_plot_exists, h_box_old, corners, varargin)    % plot all the boxes
 
 plot_str = 'k-';
 plot_type = 1;
@@ -575,7 +633,7 @@ else % It exists already
 end
 
 
-end % Ends plot_box function
+end % Ends fcn_INTERNAL_plotBox function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                 _ _______     _____      _            
@@ -668,7 +726,7 @@ end % Ends plot_spokes function
 %  |_|                                   |_|                        
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function h_spokes = plot_3Dspoke(flag_plot_exists, h_spokes_old, spoke, spoke_angle, varargin)    % plot all the spokes
+function h_spokes = plot_3Dspoke(flag_plot_exists, h_spokes_old, spokeXYZ, varargin)    % plot all the spokes
 
 plot_str = 'b-';
 plot_type = 1;
@@ -687,9 +745,9 @@ end
 % spoke(spoke_angle>pi,:) = NaN;
 
 
-xdata = [spoke(:,1), spoke(:,4), NaN*spoke(:,1)];
-ydata = [spoke(:,2), spoke(:,5), NaN*spoke(:,2)];
-zdata = [spoke(:,3), spoke(:,6), NaN*spoke(:,2)];
+xdata = spokeXYZ(:,1); 
+ydata = spokeXYZ(:,2); 
+zdata = spokeXYZ(:,3);
 
 
 % Check if plot already exists

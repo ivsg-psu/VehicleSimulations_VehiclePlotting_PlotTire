@@ -183,6 +183,19 @@ tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (figNum)
 
 fcn_PlotTire_plotTireDimensions(tireParameters,(figNum));
 
+%% fcn_PlotTire_parseTireSidewallCode for Mapping Van
+figNum = 100011;
+titleString = sprintf('DEMO: fcn_PlotTire_parseTireSidewallCode for Mapping Van');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+tireCodeCharacters = '215/55R16 XL 97H';
+
+% Call the function
+tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (figNum));
+
+fcn_PlotTire_plotTireDimensions(tireParameters,(figNum));
+
 %% fcn_PlotTire_roundedRectangle
 figNum = 10002;
 titleString = sprintf('DEMO: fcn_PlotTire_roundedRectangle');

@@ -18,53 +18,57 @@ clc;
 
 %% Test 1 - plain tire
 % Set up the tire information
-fig_num = 1;
+figNum = 1;
+figure(figNum); clf;
+
 tire = fcn_3DVehPlot_initTire;
-fcn_3DVehPlot_drawTire(tire,fig_num);
+fcn_3DVehPlot_drawTire(tire,figNum);
 
 
 sgtitle('Showing a plain tire.');
-fprintf(1,'Figure %.0d shows a plain tire.\n',fig_num);
+fprintf(1,'Figure %.0d shows a plain tire.\n',figNum);
 
 %% Test 2 - Change the orientation angle
-fig_num = 2;
+figNum = 2;
+figure(figNum); clf;
 
 % Set up the tire information
 tire = fcn_3DVehPlot_initTire;
 
 tire.orientation_angle = 45;
-fcn_3DVehPlot_drawTire(tire,fig_num);
+fcn_3DVehPlot_drawTire(tire,figNum);
 drawnow;
 
 
 
 for angle = 0:5:180
     tire.orientation_angle = angle*pi/180; % the angle of the tire [rad]
-    fcn_3DVehPlot_drawTire(tire,fig_num);
+    fcn_3DVehPlot_drawTire(tire,figNum);
     sgtitle('Showing changing rotation.');
     drawnow;
 end
 
-fprintf(1,'Figure %.0d shows changing rotation.\n',fig_num);
+fprintf(1,'Figure %.0d shows changing rotation.\n',figNum);
 
 %% Test 3 - Change the rolling angle (only works for tire type = 2 or higher)
 % Tire type is hard coded inside fcn_3DVehPlot_drawTire
 
-fig_num = 3; 
+figNum = 3; 
+figure(figNum); clf;
 
 % Set up the tire information
 tire = fcn_3DVehPlot_initTire;
 
 for angle = 0:2:180
     tire.rolling_angle = angle*pi/180; % the angle of the tire [rad]
-    fcn_3DVehPlot_drawTire(tire,fig_num);
+    fcn_3DVehPlot_drawTire(tire,figNum);
     xlabel('x');
     ylabel('y');
     sgtitle('Showing tire rolling.');
     drawnow;
 end
 
-fprintf(1,'Figure %.0d shows tire rolling.\n',fig_num);
+fprintf(1,'Figure %.0d shows tire rolling.\n',figNum);
 
 % %% Test 4 - Change the tire color via direct color call
 % 

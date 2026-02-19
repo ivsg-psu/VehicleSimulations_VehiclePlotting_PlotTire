@@ -14,7 +14,7 @@ function cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, varar
 %
 %      displayModel - an integer representing the display model to use
 %
-%          1: (default) cylinder, saved in cell array 1
+%          1: (default) wire frame cylinder, saved in cell array 1
 %
 %          2: elliptical cornered sidewall donut, saved in cell array 2
 %             (uses fcn_PlotTire_roundedRectangle)
@@ -167,27 +167,46 @@ end
 
 cellArrayOfPoints = cell(displayModel,1);
 
-% Create an offset square to represent the tire. This will be rotated
-x = [0 1 1 0 0]'*tireParameters.sectionWidth_m;
-y = [0 0 1 1 0]'*tireParameters.radius_m;
+
+if displayModel>=1
+
+	tire_radius = tireParameters.radius_m;
+	
+    spoke_interval = 20*pi/180;
+    tire_spoke_angles = (0:spoke_interval:2*pi)'; %  - tire.rolling_angle;
+    N_spokes = length(tire_spoke_angles);
+    tire_spoke_y = tire_radius*cos(tire_spoke_angles);
+    tire_spoke_z = tire_radius*sin(tire_spoke_angles);
+    
+    % The spokes are set up as [x_start y_start z_start x_end y_end z_end]
+    tire_spoke_start = ...
+        [(-tireParameters.sectionWidth_m /2)*ones(N_spokes,1), tire_spoke_y, tire_spoke_z];
+    tire_spoke_end = ...
+        [(+tireParameters.sectionWidth_m /2)*ones(N_spokes,1), tire_spoke_y, tire_spoke_z];
+    tire_spokes = [tire_spoke_start, tire_spoke_end, ones(N_spokes,1)*[nan nan nan]];
+
+	% Redistribute the data so that it is [XYZstart; XYZend; nan]
+	tireSpokesXYZ = reshape(tire_spokes',3,[])';
+
+	XYZpoints = [tireSpokesXYZ; tire_spoke_start; nan nan nan; tire_spoke_end];
 
 
 
-midPoint = [tireParameters.sectionWidth_m/2 0];
-XYpoints = [x y]-ones(length(x),1)*midPoint;
 
-% For debugging
-if flag_do_debug
-    figure(debug_figNum);
-    clf;
-    plot3(XYpoints(:,1),XYpoints(:,2),XYpoints(:,2)*0);
-    axis equal;
-    xlabel('X');
-    ylabel('Y');
+	% For debugging
+	if flag_do_debug
+		figure(debug_figNum);
+		clf;
+		plot3(XYZpoints(:,1),XYZpoints(:,2),XYZpoints(:,3));
+		axis equal;
+		xlabel('X');
+		ylabel('Y');
+		zlabel('Z');
+		view(3)
+	end
 
+	cellArrayOfPoints{1,1} = XYZpoints;
 end
-
-cellArrayOfPoints{1,1} = XYpoints;
 
 if displayModel>=2
 	% Fill parameters
@@ -202,8 +221,8 @@ if displayModel>=2
 		(cornerShape), (cornerParams), (NcornerPoints), (-1));
 
 	Npoints = size(XYpointsNormalized,1);
-	XYpoints = XYpointsNormalized.*(ones(Npoints,1)*[tireParameters.sectionWidth_m tireParameters.radius_m*2]);
-	cellArrayOfPoints{2,1} = XYpoints;
+	XYZpoints = XYpointsNormalized.*(ones(Npoints,1)*[tireParameters.sectionWidth_m tireParameters.radius_m*2]);
+	cellArrayOfPoints{2,1} = XYZpoints;
 end
 
 if displayModel>=3
@@ -297,8 +316,9 @@ end
 %                           |___/
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if flag_do_plots
-
-	fcn_PlotTire_plotTireXY(cellArrayOfPoints, (figNum));
+	tireNameString = [];
+	vehicleNameString = [];
+	fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, (tireNameString), (vehicleNameString), (figNum));
 end
 
 if flag_do_debug

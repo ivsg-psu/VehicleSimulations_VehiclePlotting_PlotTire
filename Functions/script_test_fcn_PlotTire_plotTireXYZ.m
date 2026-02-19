@@ -43,7 +43,7 @@ fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
 figure(figNum); clf;
 
 % Fill parameters
-tireCodeCharacters = '205/55R16 91V';
+tireCodeCharacters = '215/55R16 XL 97H';
 tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
 displayModel = [];
 

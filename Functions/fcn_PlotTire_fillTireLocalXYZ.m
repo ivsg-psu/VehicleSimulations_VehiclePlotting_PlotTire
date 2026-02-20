@@ -64,29 +64,29 @@ function cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, varar
 MAX_NARGIN = 3; % The largest Number of argument inputs to the function
 flag_max_speed = 0; % The default. This runs code with all error checking
 if (nargin==MAX_NARGIN && isequal(varargin{end},-1))
-	flag_do_debug = 0; % Flag to plot the results for debugging
+	flag_do_debug = 0; %#ok<NASGU> % Flag to plot the results for debugging
 	flag_check_inputs = 0; % Flag to perform input checking
 	flag_max_speed = 1;
 else
 	% Check to see if we are externally setting debug mode to be "on"
-	flag_do_debug = 0; % Flag to plot the results for debugging
+	flag_do_debug = 0; %#ok<NASGU> % Flag to plot the results for debugging
 	flag_check_inputs = 1; % Flag to perform input checking
 	MATLABFLAG_PLOTTIRE_FLAG_CHECK_INPUTS = getenv("MATLABFLAG_PLOTTIRE_FLAG_CHECK_INPUTS");
 	MATLABFLAG_PLOTTIRE_FLAG_DO_DEBUG = getenv("MATLABFLAG_PLOTTIRE_FLAG_DO_DEBUG");
 	if ~isempty(MATLABFLAG_PLOTTIRE_FLAG_CHECK_INPUTS) && ~isempty(MATLABFLAG_PLOTTIRE_FLAG_DO_DEBUG)
-		flag_do_debug = str2double(MATLABFLAG_PLOTTIRE_FLAG_DO_DEBUG);
+		flag_do_debug = str2double(MATLABFLAG_PLOTTIRE_FLAG_DO_DEBUG); %#ok<NASGU>
 		flag_check_inputs  = str2double(MATLABFLAG_PLOTTIRE_FLAG_CHECK_INPUTS);
 	end
 end
 
-flag_do_debug = 1;
+flag_do_debug = 0;
 
 if flag_do_debug % If debugging is on, print on entry/exit to the function
 	st = dbstack; %#ok<*UNRCH>
 	fprintf(1,'STARTING function: %s, in file: %s\n',st(1).name,st(1).file);
 	debug_figNum = 999978; 
 else
-	debug_figNum = []; 
+	debug_figNum = []; %#ok<NASGU>
 end
 
 %% check input arguments?
@@ -210,19 +210,99 @@ end
 
 if displayModel>=2
 	% Fill parameters
-	L = 1;
-	W = 1;
+	L = tireParameters.sectionWidth_m;
+	W = tireParameters.sidewallHeight_m;
 	cornerShape = 'ellipse';
 	cornerParams = [L/4 W/20];
 	NcornerPoints = 24;
 
 	% Call the fcn_PlotTire_roundedRectangle function
-	XYpointsNormalized = fcn_PlotTire_roundedRectangle(L, W, ...
+	rawCrossSection = fcn_PlotTire_roundedRectangle(L, W, ...
 		(cornerShape), (cornerParams), (NcornerPoints), (-1));
 
-	Npoints = size(XYpointsNormalized,1);
-	XYZpoints = XYpointsNormalized.*(ones(Npoints,1)*[tireParameters.sectionWidth_m tireParameters.radius_m*2]);
-	cellArrayOfPoints{2,1} = XYZpoints;
+	offsetY = tireParameters.sidewallHeight_m/2 + tireParameters.rimDiameter_m/2;
+	rawCrossSection = [rawCrossSection; rawCrossSection(1,:)];
+	Ncross = size(rawCrossSection,1);
+	tireCrossSection = rawCrossSection + ones(Ncross,1)*[0 offsetY];
+	
+
+	if 1==0
+		% Load template squre with rounded corners
+		% see: script_test_fcn_PlotWZ_fillPolygonBase.m
+		Nsides = 4;
+		Npoints_per_half_edge = 1;
+		radius_of_round = 0.3;
+		Npoints_per_half_round = 2;
+		points = fcn_PlotWZ_fillPolygonBase(Nsides,Npoints_per_half_edge,radius_of_round, Npoints_per_half_round, debug_fig);
+		points_normalized = points/max(max(points)); % Normalize to 1
+
+		inner_radius = 0.7; % How far the inner radius is, as percentage of outer radius
+		shift_up = (1+inner_radius)/2;
+		resizing = (1-shift_up);
+		tireCrossSection = (points_normalized*[1 0;0 resizing])+[0 shift_up];
+	end
+
+	if flag_do_debug
+		figure(387383); plot(tireCrossSection(:,1),tireCrossSection(:,2),'k.-');
+	end
+
+
+
+    N_cross_sections = length(tireCrossSection(:,1));
+    
+    %     % Find the ones greater than zero, use these as radii
+    %     first_negative_y = find(points(:,2)<0,1);
+    %     positive_radii = points(1:(first_negative_y-1),:);
+    %     figure(2222);
+    %     plot(positive_radii(:,1),positive_radii(:,2),'k.-');
+    
+    % Define a base circle
+    Npoints = 72;
+    base_vertex_angles_in_degrees = linspace(0,360,Npoints)';
+    circular_XZ_points_normalized = [cos(base_vertex_angles_in_degrees*pi/180) sin(base_vertex_angles_in_degrees*pi/180)];
+    
+    
+    % Stack the circles with radii to make 3D mesh   
+    ones_lens = ones(length(circular_XZ_points_normalized(:,1)),1);    
+    tire_cross_sections(N_cross_sections).data = []; % Initialize the array
+    for ith_cross_section = 1:N_cross_sections
+        % Assume a circular cross section, and use the x value to get the
+        % height
+        y_height = tireCrossSection(ith_cross_section,1);
+        
+        % Use the y value to get the radius of the tire
+        radius =  tireCrossSection(ith_cross_section,2);
+        cross_section_xz = circular_XZ_points_normalized*radius;
+        
+        tire_cross_sections(ith_cross_section).data = [cross_section_xz(:,1) y_height*ones_lens cross_section_xz(:,2)];
+        tire_cross_sections(ith_cross_section).color = [0.5 0.5 0.5];
+    end
+    
+    % plot the final result?
+    if flag_do_debug
+        
+        figure(454545);
+        clf;
+        hold on;
+        grid on
+        axis equal
+        
+        lightangle(gca,45,30)
+        lighting flat
+        shading flat
+    end
+    
+    h_tire_data = fcn_PlotWZ_createPatchesFromNSegments(tire_cross_sections,[]);
+
+	if 1==0
+		% Plot the tire
+		h_tire = patch(h_tire_data);
+		set(h_tire,'FaceColor','flat','FaceAlpha','0.8','EdgeColor',[1 1 1]*0.2, 'EdgeAlpha',0.1);
+		axis equal;
+		view(3);
+	end
+
+	cellArrayOfPoints{2,1} = h_tire_data;
 end
 
 if displayModel>=3
@@ -245,17 +325,42 @@ if displayModel>=3
 		];
 
 	fullTreadPattern = fcn_INTERNAL_flipNegateAndAppend(halfTreadPattern, 0);
+	if 1==0
+		figure(48484);
+		clf;
+		plot(fullTreadPattern(:,1),fullTreadPattern(:,2),'-');
+		axis equal;
+	end
+
 	treadPattern = [fullTreadPattern; nan nan];
 
 	% Find the radius versus X-posiiton for this tire
+	rawCrossSectionXnormalized = rawCrossSection(:,1)./max(rawCrossSection(:,1));
+	rawCrossSectionYnormalized = rawCrossSection(:,2)./max(rawCrossSection(:,2));
+	XYpointsNormalized = [rawCrossSectionXnormalized rawCrossSectionYnormalized]/2;
+
+	if 1==0
+		figure(979797);
+		clf;
+		plot(XYpointsNormalized(:,1),XYpointsNormalized(:,2),'-');
+		axis equal;
+	end
+
 	firstNegativeValue = find(XYpointsNormalized(:,2)<0,1);
 	positiveNormalizedHalfProfile = [0 0.5; XYpointsNormalized(1:firstNegativeValue-1,:)];
 	positiveNormalizedProfile = 2*positiveNormalizedHalfProfile;
 	fullNormalizedProfile = fcn_INTERNAL_flipNegateAndAppend(positiveNormalizedProfile, 1);
 
+	if 1==0
+		figure(56565);
+		clf;
+		plot(fullNormalizedProfile(:,1),fullNormalizedProfile(:,2),'-');
+		axis equal;
+	end
+
 	% Find the radius multiplier for the tread pattern. This is how much
 	% (percentage) the radius is at each x-value
-	radiusMultiplier = interp1(fullNormalizedProfile(:,1),fullNormalizedProfile(:,2),treadPattern(:,1));
+	radiusMultiplier = 1.02*interp1(fullNormalizedProfile(:,1),fullNormalizedProfile(:,2),treadPattern(:,1));
 
 
 	% Across many angles in the tire, from 0 to 180, calculate what the
@@ -263,7 +368,7 @@ if displayModel>=3
 	Nangles = 32;
 
 	allTread = [];
-	allAngles = linspace(0,pi,Nangles+1)';
+	allAngles = linspace(0,2*pi,Nangles+1)';
 	deltaAngle = allAngles(2)-allAngles(1);
 
 
@@ -288,11 +393,8 @@ if displayModel>=3
 		% Calculate XYZ values
 		XYZtread = [xPattern radii.*cos(angles) radii.*sin(angles)];
 
-		% Keep only the positive Z values
-		positiveZs = XYZtread(:,3)>=0;
-
 		% Append results into growing array
-		allTread = [allTread; XYZtread(positiveZs,1:2); nan nan]; %#ok<AGROW>
+		allTread = [allTread; XYZtread; nan nan nan]; %#ok<AGROW>
 
 		% For debugging
 		if 1==0 %flag_do_debug
@@ -301,6 +403,26 @@ if displayModel>=3
 			axis equal
 		end
 	end
+
+	% % Shift tread upward
+	% allTread(:,3) = allTread(:,3)+tireParameters.radius_m;
+
+
+	% tempCellArray = cell(2,1);
+	% for ith_cell = 1:2
+	% 	tempCellArray{ith_cell,1} = cellArrayOfPoints{ith_cell,1};
+	% end
+	% 
+	% % Call the plot function
+	% tireNameString = [];
+	% vehicleNameString = [];
+	% fcn_PlotTire_plotTireXYZ(tempCellArray, (tireNameString), (vehicleNameString), (figNum));
+	% 
+	% % % Plot the tire
+	% % fcn_PlotTire_fillTireLocalXYZ(tireParameters, (2), (-1));
+	% 
+	% plot3(allTread(:,1),allTread(:,2),allTread(:,3),'k-','Linewidth',2);
+
 	cellArrayOfPoints{3,1} = allTread;
 end
 

@@ -78,9 +78,14 @@ tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
 
 
 for displayModel = 1:2
+	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, (displayModel), (-1));
 	subplot(1,2,displayModel);
-	% Call the function
-	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, (displayModel), (figNum));
+	
+	% Call the plot function
+	tireNameString = [];
+	vehicleNameString = [];
+	fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, (tirePosition), (tireNameString), (vehicleNameString), (figNum));
+	
 	title(sprintf('Model %.0f, %.0f points',displayModel, size(cellArrayOfPoints{displayModel,1},1)));
 end
 
@@ -109,21 +114,97 @@ figure(figNum); clf;
 % Fill parameters
 tireCodeCharacters = '205/55R16 91V';
 tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
-displayModel = 3;
-cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, (displayModel), (-1));
 
 for displayModel = 1:3
 	subplot(1,3,displayModel);
+	
+	cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, (displayModel), (-1));
 
 	tempCellArray = cell(displayModel,1);
 	for ith_cell = 1:displayModel
 		tempCellArray{ith_cell,1} = cellArrayOfPoints{ith_cell,1};
 	end
-	
-	% Call the function
-	cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(tempCellArray, (figNum));
-	title(sprintf('Model %.0f, %.0f points',displayModel, size(cellArrayOfPoints{displayModel,1},1)));
+
+	% Call the plot function
+	tirePosition = [];
+	tireNameString = [];
+	vehicleNameString = [];
+	cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(tempCellArray, (tirePosition), (tireNameString), (vehicleNameString), (figNum));
+	if 1==displayModel
+		Npoints = size(cellArrayOfPoints{displayModel,1},1);
+	elseif 2==displayModel
+		temp = cellArrayOfPoints{2,1};
+		Npoints = length(temp.Vertices);
+	elseif 3==displayModel
+		temp = cellArrayOfPoints{2,1};
+		Npoints = length(temp.Vertices) + size(cellArrayOfPoints{displayModel,1},1);
+	end
+	title(sprintf('Model %.0f, %.0f points',displayModel, Npoints));
 end
+
+sgtitle(titleString, 'Interpreter','none');
+
+% Check variable types
+assert(iscell(cellArrayOfPlotHandles));
+
+% Check variable sizes
+assert(size(cellArrayOfPlotHandles,1)==3); 
+assert(size(cellArrayOfPlotHandles,2)==1); 
+
+% Check variable values
+% Too many to check
+
+% Make sure plot opened up
+assert(isequal(get(gcf,'Number'),figNum));
+
+%% DEMO case: plotting four tires
+figNum = 10004;
+titleString = sprintf('DEMO case: plotting four tires');
+fprintf(1,'Figure %.0f: %s\n',figNum, titleString);
+figure(figNum); clf;
+
+% Fill parameters
+tireCodeCharacters = '205/55R16 91V';
+tireParameters = fcn_PlotTire_parseTireSidewallCode(tireCodeCharacters, (-1));
+cellArrayOfPoints = fcn_PlotTire_fillTireLocalXYZ(tireParameters, (3), (-1));
+
+% Call the plot function
+vehicleNameString = [];
+
+
+tireNameString = 'FrontRight';
+tirePosition.position_x = 2;
+tirePosition.position_y = -1;
+tirePosition.position_z = 0;
+tirePosition.orientation_angle = 0;
+tirePosition.rolling_angle = 0;
+fcn_PlotTire_plotTireXYZ(tempCellArray, (tirePosition), (tireNameString), (vehicleNameString), (figNum));
+
+tireNameString = 'FrontLeft';
+tirePosition.position_x = 2;
+tirePosition.position_y = 1;
+tirePosition.position_z = 0;
+tirePosition.orientation_angle = 0;
+tirePosition.rolling_angle = 0;
+fcn_PlotTire_plotTireXYZ(tempCellArray, (tirePosition), (tireNameString), (vehicleNameString), (figNum));
+
+
+tireNameString = 'RearRight';
+tirePosition.position_x = 0;
+tirePosition.position_y = -1;
+tirePosition.position_z = 0;
+tirePosition.orientation_angle = 0;
+tirePosition.rolling_angle = 0;
+fcn_PlotTire_plotTireXYZ(tempCellArray, (tirePosition), (tireNameString), (vehicleNameString), (figNum));
+
+tireNameString = 'RearLeft';
+tirePosition.position_x = 0;
+tirePosition.position_y = 1;
+tirePosition.position_z = 0;
+tirePosition.orientation_angle = 0;
+tirePosition.rolling_angle = 0;
+fcn_PlotTire_plotTireXYZ(tempCellArray, (tirePosition), (tireNameString), (vehicleNameString), (figNum));
+
 
 sgtitle(titleString, 'Interpreter','none');
 

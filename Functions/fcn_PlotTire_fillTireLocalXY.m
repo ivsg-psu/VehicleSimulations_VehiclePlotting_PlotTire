@@ -215,13 +215,35 @@ if displayModel>=3
 		];
 
 	fullTreadPattern = fcn_INTERNAL_flipNegateAndAppend(halfTreadPattern, 0);
+
+	if 1==0
+		figure(48484);
+		clf;
+		plot(fullTreadPattern(:,1),fullTreadPattern(:,2),'-');
+		axis equal;
+	end
+
 	treadPattern = [fullTreadPattern; nan nan];
+	
+	if 1==0
+		figure(979797);
+		clf;
+		plot(XYpointsNormalized(:,1),XYpointsNormalized(:,2),'-');
+		axis equal;
+	end
 
 	% Find the radius versus X-posiiton for this tire
 	firstNegativeValue = find(XYpointsNormalized(:,2)<0,1);
 	positiveNormalizedHalfProfile = [0 0.5; XYpointsNormalized(1:firstNegativeValue-1,:)];
 	positiveNormalizedProfile = 2*positiveNormalizedHalfProfile;
 	fullNormalizedProfile = fcn_INTERNAL_flipNegateAndAppend(positiveNormalizedProfile, 1);
+
+	if 1==0
+		figure(56565);
+		clf;
+		plot(fullNormalizedProfile(:,1),fullNormalizedProfile(:,2),'-');
+		axis equal;
+	end
 
 	% Find the radius multiplier for the tread pattern. This is how much
 	% (percentage) the radius is at each x-value

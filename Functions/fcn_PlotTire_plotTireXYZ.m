@@ -2,7 +2,7 @@ function cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, va
 %fcn_PlotTire_plotTireXYZ - plots the tire's XY coordinate view
 % FORMAT:
 %
-%      cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, (tireNameString), (vehicleNameString), (figNum));
+%      cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, (views), (tirePosition), (tireNameString), (vehicleNameString), (figNum));
 %
 % INPUTS:
 %
@@ -10,6 +10,17 @@ function cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, va
 %      additional complexity depending on the method used
 %
 %      (OPTIONAL INPUTS)
+%
+%      views - an array of which views to use, e.g. [3], or [1 3], etc.
+%
+%      tirePosition - a structure array containing values as follows
+%      (defaults are shown)
+%
+%           tirePosition.position_x = 0;
+%           tirePosition.position_y = 0;
+%           tirePosition.position_z = 0;
+%           tirePosition.orientation_angle = 0;
+%           tirePosition.rolling_angle = 0;
 %
 %      tireNameString - a string used to store handles (in current axis)
 %      for this particular tire. Each tire model type will have the model
@@ -56,7 +67,7 @@ function cellArrayOfPlotHandles = fcn_PlotTire_plotTireXYZ(cellArrayOfPoints, va
 % Check if flag_max_speed set. This occurs if the figNum variable input
 % argument (varargin) is given a number of -1, which is not a valid figure
 % number.
-MAX_NARGIN = 4; % The largest Number of argument inputs to the function
+MAX_NARGIN = 5; % The largest Number of argument inputs to the function
 flag_max_speed = 0; % The default. This runs code with all error checking
 if (nargin==MAX_NARGIN && isequal(varargin{end},-1))
 	flag_do_debug = 0; % Flag to plot the results for debugging
@@ -104,11 +115,26 @@ if 0==flag_max_speed
 	end
 end
 
-% Does the user want to specify the tireNameString?
-tireNameString = ''; % Default case
+% Does the user want to specify the tire structure?
+tirePosition.position_x = 0;
+tirePosition.position_y = 0;
+tirePosition.position_z = 0;
+tirePosition.orientation_angle = 0;
+tirePosition.rolling_angle = 0;
+
 % Check for user input
 if 2 <= nargin
     temp = varargin{1};
+    if ~isempty(temp)
+		tirePosition = temp;        
+    end
+end
+
+% Does the user want to specify the tireNameString?
+tireNameString = ''; % Default case
+% Check for user input
+if 3 <= nargin
+    temp = varargin{2};
     if ~isempty(temp)
 		tireNameString = temp;        
     end
@@ -117,8 +143,8 @@ end
 % Does the user want to specify the vehicleNameString?
 vehicleNameString = ''; % Default case
 % Check for user input
-if 3 <= nargin
-    temp = varargin{2};
+if 4 <= nargin
+    temp = varargin{3};
     if ~isempty(temp)
 		vehicleNameString = temp;        
     end
@@ -183,10 +209,6 @@ if flag_do_plots
 		h_vehicle = getappdata(gca,vehicleNameString);
 	end
 
-	tire.position_x = 0;
-	tire.position_y = 0;
-	tire.orientation_angle = 0;
-	tire.rolling_angle = 0;
 
 	for ith_modelType = 1:Nmodels
 		% subplot(1,Ncolumns,ith_plot)
@@ -194,44 +216,46 @@ if flag_do_plots
 		xlabel('meters'); ylabel('meters');
 
 
-		XYZpoints = cellArrayOfPoints{ith_modelType,1};
-		tire.position_z = max(XYZpoints(:,3));
 
-		% If data is not there, plot nan values so that plot handle is
-		% populated anyway
-		if isempty(XYZpoints)
-			XYZpoints = [nan nan];
+
+		h_thisTire = []; % Default value
+
+		% Does user want to try to load the tire handle?
+		if ~isempty(tireNameString)
+			h_thisTire = getappdata(gca,cat(2,tireNameString,sprintf('%.0f',ith_modelType)));
+		else
+			% Generate a random name
+			% rng(0);               % optional for reproducibility
+			len = 12;
+			alphabet = ['A':'Z' 'a':'z'];
+			idx = randi(numel(alphabet), 1, len);
+			tireNameString = alphabet(idx);
 		end
+
+		% Associate the transform with this handle
+		if isempty(h_vehicle)
+			ax = gca; % Grab current axes;
+			tire_body_transform_object = hgtransform('Parent',ax);
+			tire_hub_transform_object = hgtransform('Parent',tire_body_transform_object);
+			tire_spokes_transform_object = hgtransform('Parent',tire_hub_transform_object);
+		else
+			tire_body_transform_object = hgtransform('Parent',h_vehicle);
+			tire_hub_transform_object = hgtransform('Parent',tire_body_transform_object);
+			tire_spokes_transform_object = hgtransform('Parent',tire_hub_transform_object);
+		end
+
 
 		if ith_modelType ==1
 
-			h_thisTire = []; % Default value
+			XYZpoints = cellArrayOfPoints{ith_modelType,1};
 
-			% Does user want to try to load the tire handle?
-			if ~isempty(tireNameString)
-				h_thisTire = getappdata(gca,cat(2,tireNameString,'1'));
-			else
-				% Generate a random name
-				% rng(0);               % optional for reproducibility
-				len = 12;
-				alphabet = ['0':'9' 'A':'Z' 'a':'z'];
-				idx = randi(numel(alphabet), 1, len);
-				tireNameString = alphabet(idx);
+			% If data is not there, plot nan values so that plot handle is
+			% populated anyway
+			if isempty(XYZpoints)
+				XYZpoints = [nan nan];
 			end
 
 			if isempty(h_thisTire)
-				% Associate the transform with this handle
-				if isempty(h_vehicle)
-					ax = gca; % Grab current axes;
-					tire_body_transform_object = hgtransform('Parent',ax);
-					tire_hub_transform_object = hgtransform('Parent',tire_body_transform_object);
-					tire_spokes_transform_object = hgtransform('Parent',tire_hub_transform_object);
-				else
-					tire_body_transform_object = hgtransform('Parent',h_vehicle);
-					tire_hub_transform_object = hgtransform('Parent',tire_body_transform_object);
-					tire_spokes_transform_object = hgtransform('Parent',tire_hub_transform_object);
-				end
-
 				% Plot the tire's contact shadow
 				minX = min(XYZpoints(:,1));
 				maxX = max(XYZpoints(:,1));
@@ -265,39 +289,41 @@ if flag_do_plots
 
 				% Rotate and translate the tire body to current orientation angle (e.g.
 				% like steering)
-				M = makehgtform('translate',[tire.position_x tire.position_y 0],'zrotate',tire.orientation_angle);
+				M = makehgtform('translate',[tirePosition.position_x tirePosition.position_y 0],'zrotate',tirePosition.orientation_angle);
 				set(tire_body_transform_object,'Matrix',M);
 
 				% Move the hub to the height above the body
-				M = makehgtform('translate',[0 0 tire.position_z]);
+				% tire.position_z = max(XYZpoints(:,3));
+				M = makehgtform('translate',[0 0 tirePosition.position_z]);
 				set(tire_hub_transform_object,'Matrix',M);
 
 				% Rotate the spokes to current theta about the hub
-				M = makehgtform('xrotate',-tire.rolling_angle);
+				M = makehgtform('xrotate',-tirePosition.rolling_angle);
 				set(tire_spokes_transform_object,'Matrix',M);
 
 				% Save the transforms
 				h_thisTire.body_transform_object = tire_body_transform_object;
 				h_thisTire.hub_transform_object = tire_hub_transform_object;
 				h_thisTire.spokes_transform_object = tire_spokes_transform_object;
-				setappdata(gca,tireNameString,h_thisTire);
+				setappdata(gca,tireNameString, h_thisTire);
+
 
 				view(3);
 
 			else % Update the line positions
 				% Move the body of the tire
-				M = makehgtform('translate',[tire.position_x tire.position_y 0],'zrotate',tire.orientation_angle);
+				M = makehgtform('translate',[tirePosition.position_x tirePosition.position_y tirePosition.position_z],'zrotate',tirePosition.orientation_angle);
 				set(h_thisTire.body_transform_object,'Matrix',M);
 
 				% Rotate the spokes around the hub
-				M = makehgtform('xrotate',-tire.rolling_angle);
+				M = makehgtform('xrotate',-tirePosition.rolling_angle);
 				set(h_thisTire.spokes_transform_object,'Matrix',M);
 
 
 				% Plot the tire usage?
-				if isfield(tire,'usage') && ~isempty(tire.usage)
-					if isnumeric(tire.usage)
-						plot_str = convertToColor(tire.usage);
+				if isfield(tirePosition,'usage') && ~isempty(tirePosition.usage)
+					if isnumeric(tirePosition.usage)
+						plot_str = convertToColor(tirePosition.usage);
 						set(h_thisTire.body,'Color',plot_str);
 					end
 				end
@@ -305,12 +331,134 @@ if flag_do_plots
 
 			cellArrayOfPlotHandles{1} = h_thisTire;
 		elseif ith_modelType == 2
-			% Draw outer tire and rim
-			cellArrayOfPlotHandles{2} = patch('XData', XYZpoints(:,1), 'YData', XYZpoints(:,2), ...
-				'FaceColor',0.4*[1 1 1], 'EdgeColor', 0.2*[1 1 1],'FaceAlpha',0.8, 'DisplayName','Tire profile'); % tire rubber
+
+			if isempty(h_thisTire)
+
+				h_tire_data = cellArrayOfPoints{2,1};
+				
+				% Plot the tire
+				h_tire = patch(h_tire_data);
+				set(h_tire,'FaceColor','flat','FaceAlpha','0.9','EdgeColor',[1 1 1]*0.1, 'EdgeAlpha',0.1);
+				axis equal;
+				view(3);
+
+				% Associate the plots with the transform object
+				set(h_tire,'Parent',tire_body_transform_object);
+
+				% Save the handles
+				h_thisTire.h_tire = h_tire;
+
+
+
+				% Rotate and translate the tire body to current orientation angle (e.g.
+				% like steering)
+				tirePosition.orientation_angle = tirePosition.orientation_angle + pi/2;
+				M = makehgtform('translate',[tirePosition.position_x tirePosition.position_y tirePosition.position_z],'zrotate',tirePosition.orientation_angle);
+				set(tire_body_transform_object,'Matrix',M);
+
+				% % Move the hub to the height above the body
+				% tire.position_z = max(XYZpoints(:,3));
+				% M = makehgtform('translate',[0 0 0]);
+				% set(tire_hub_transform_object,'Matrix',M);
+
+				% Rotate the spokes to current theta about the hub
+				M = makehgtform('xrotate',-tirePosition.rolling_angle);
+				set(tire_spokes_transform_object,'Matrix',M);
+
+				% Save the transforms
+				h_thisTire.body_transform_object = tire_body_transform_object;
+				h_thisTire.hub_transform_object = tire_hub_transform_object;
+				h_thisTire.spokes_transform_object = tire_spokes_transform_object;
+				setappdata(gca,tireNameString, h_thisTire);
+
+
+				view(3);
+
+			else % Update the line positions
+				% Move the body of the tire
+				M = makehgtform('translate',[tirePosition.position_x tirePosition.position_y tirePosition.position_z],'zrotate',tirePosition.orientation_angle);
+				set(h_thisTire.body_transform_object,'Matrix',M);
+
+				% Rotate the spokes around the hub
+				M = makehgtform('xrotate',-tirePosition.rolling_angle);
+				set(h_thisTire.spokes_transform_object,'Matrix',M);
+
+
+				% Plot the tire usage?
+				if isfield(tirePosition,'usage') && ~isempty(tirePosition.usage)
+					if isnumeric(tirePosition.usage)
+						plot_str = convertToColor(tirePosition.usage);
+						set(h_thisTire.body,'Color',plot_str);
+					end
+				end
+			end
+
 		elseif ith_modelType == 3
 			% Draw tread
-			cellArrayOfPlotHandles{3} = plot(XYZpoints(:,1),XYZpoints(:,2),'-','Color',0.1*[1 1 1],'LineWidth',2,'DisplayName','Tread');
+			if isempty(h_thisTire)
+
+				tempCellArray = cell(2,1);
+				for ith_cell = 1:2
+					tempCellArray{ith_cell,1} = cellArrayOfPoints{ith_cell,1};
+				end
+
+				% Call the plot function
+				fcn_PlotTire_plotTireXYZ(tempCellArray, ([]), ([]), ([]), (figNum));
+
+				allTread = cellArrayOfPoints{3,1};
+				h_tire = plot3(allTread(:,1),allTread(:,2),allTread(:,3),'k-','Linewidth',2);
+			
+				% Associate the plots with the transform object
+				set(h_tire,'Parent',tire_body_transform_object);
+
+				% Save the handles
+				h_thisTire.h_tire = h_tire;
+
+
+
+				% Rotate and translate the tire body to current orientation angle (e.g.
+				% like steering)
+				tirePosition.orientation_angle = tirePosition.orientation_angle + pi/2;
+				M = makehgtform('translate',[tirePosition.position_x tirePosition.position_y tirePosition.position_z],'zrotate',tirePosition.orientation_angle);
+				set(tire_body_transform_object,'Matrix',M);
+
+				% % Move the hub to the height above the body
+				% tire.position_z = max(XYZpoints(:,3));
+				% M = makehgtform('translate',[0 0 0]);
+				% set(tire_hub_transform_object,'Matrix',M);
+
+				% Rotate the spokes to current theta about the hub
+				M = makehgtform('xrotate',-tirePosition.rolling_angle);
+				set(tire_spokes_transform_object,'Matrix',M);
+
+				% Save the transforms
+				h_thisTire.body_transform_object = tire_body_transform_object;
+				h_thisTire.hub_transform_object = tire_hub_transform_object;
+				h_thisTire.spokes_transform_object = tire_spokes_transform_object;
+				setappdata(gca,tireNameString, h_thisTire);
+
+
+				view(3);
+
+			else % Update the line positions
+				% Move the body of the tire
+				M = makehgtform('translate',[tirePosition.position_x tirePosition.position_y tirePosition.position_z],'zrotate',tirePosition.orientation_angle);
+				set(h_thisTire.body_transform_object,'Matrix',M);
+
+				% Rotate the spokes around the hub
+				M = makehgtform('xrotate',-tirePosition.rolling_angle);
+				set(h_thisTire.spokes_transform_object,'Matrix',M);
+
+
+				% Plot the tire usage?
+				if isfield(tirePosition,'usage') && ~isempty(tirePosition.usage)
+					if isnumeric(tirePosition.usage)
+						plot_str = convertToColor(tirePosition.usage);
+						set(h_thisTire.body,'Color',plot_str);
+					end
+				end
+			end
+
 		end
 
 		% % Limits and styling

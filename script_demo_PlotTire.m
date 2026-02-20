@@ -33,9 +33,17 @@
 % - Deprecated unused functions
 % - Fixed fcn_PlotTire_roundedRectangle to have correct standard
 %   % format
+%
 % (new release)
 % 
-% 2026_02_18 by Sean Brennan, sbrennan@psu.edu
+% 2026_02_20 by Sean Brennan, sbrennan@psu.edu
+% - In script_test_fcn_PlotTire_plotTireXYZ
+%   % * Wrote the code originally, using
+%   %   % script_test_fcn_PlotTire_plotTireXY as starter
+% - In fcn_PlotTire_plotTireXYZ
+%   % * Wrote function using fcn_PlotTire_plotTireXY as starter
+%
+% (new release)
 
 % TO-DO:
 % - 2026_02_08 by Sean Brennan, sbrennan@psu.edu
